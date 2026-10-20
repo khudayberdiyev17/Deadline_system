@@ -41,6 +41,8 @@ class Assignment(Base):
     notes: Mapped[str|None] = mapped_column(Text, nullable=True)
     deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     creator_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    max_score: Mapped[int] = mapped_column(Integer, default=100)
+    results_published: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     subject = relationship("Subject")
 class Recipient(Base):
@@ -67,5 +69,8 @@ class Submission(Base):
     recipient_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("recipients.id"), unique=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     comment: Mapped[str|None] = mapped_column(Text, nullable=True)
+    score: Mapped[int|None] = mapped_column(Integer, nullable=True)
+    feedback: Mapped[str|None] = mapped_column(Text, nullable=True)
+    graded_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     recipient = relationship("Recipient")
 

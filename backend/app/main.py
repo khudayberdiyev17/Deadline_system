@@ -26,6 +26,9 @@ class SubjectIn(BaseModel): name:str=Field(min_length=1,max_length=100)
 class AssignmentIn(BaseModel):
     subject_id:uuid.UUID; title:str=Field(min_length=3,max_length=180); description:str=Field(min_length=3); notes:str|None=None
     deadline:datetime; target_type:str; class_id:uuid.UUID|None=None; student_id:uuid.UUID|None=None
+    max_score:int=Field(default=100,ge=1,le=1000)
+class GradeIn(BaseModel):
+    score:int=Field(ge=0); feedback:str|None=None
 def err(status, detail): raise HTTPException(status, detail)
 def token(user):
     return jwt.encode({"sub":str(user.id),"role":user.role,"exp":datetime.now(timezone.utc)+timedelta(hours=8)},settings.jwt_secret,algorithm="HS256")
@@ -34,7 +37,8 @@ def current(request:Request, session:Session=Depends(db)):
     try: data=jwt.decode(raw,settings.jwt_secret,algorithms=["HS256"])
     except Exception: err(401,"Kirish talab qilinadi")
     user=session.get(User,uuid.UUID(data["sub"]))
-    if not user or not user.active: err(401,"Hisob faol emas")
+    if not user: err(401,"Foydalanuvchi topilmadi. Qayta tizimga kiring")
+    if not user.active: err(401,"Hisob faol emas")
     return user
 def admin(user=Depends(current)):
     if user.role!="admin": err(403,"Faqat administrator uchun")
@@ -87,7 +91,8 @@ def student_assignments(user=Depends(current),session:Session=Depends(db)):
     result=[]
     for r in recs:
       sub=session.scalar(select(Submission).where(Submission.recipient_id==r.id))
-      result.append({"recipient_id":str(r.id),"assignment_id":str(r.assignment.id),"subject":r.assignment.subject.name,"title":r.assignment.title,"description":r.assignment.description,"deadline":r.assignment.deadline,"status":"submitted" if sub else ("locked" if datetime.now(timezone.utc)>=r.assignment.deadline else "pending"),"submitted_at":sub.submitted_at if sub else None})
+      st="graded" if (sub and sub.score is not None) else ("submitted" if sub else ("locked" if datetime.now(timezone.utc)>=r.assignment.deadline else "pending"))
+      result.append({"recipient_id":str(r.id),"assignment_id":str(r.assignment.id),"subject":r.assignment.subject.name,"title":r.assignment.title,"description":r.assignment.description,"deadline":r.assignment.deadline,"max_score":r.assignment.max_score,"results_published":r.assignment.results_published,"status":st,"score":sub.score if sub else None,"feedback":sub.feedback if sub else None,"submitted_at":sub.submitted_at if sub else None,"graded_at":sub.graded_at if sub else None})
     return result
 @app.get("/api/v1/assignments/{assignment_id}")
 def assignment_detail(assignment_id:uuid.UUID,user=Depends(current),session:Session=Depends(db)):
@@ -100,7 +105,7 @@ def assignment_detail(assignment_id:uuid.UUID,user=Depends(current),session:Sess
     attachments=session.scalars(select(StoredFile).where(StoredFile.assignment_id==assignment_id)).all()
     files=session.scalars(select(StoredFile).where(StoredFile.recipient_id==rec.id)).all() if rec else []
     submission=session.scalar(select(Submission).where(Submission.recipient_id==rec.id)) if rec else None
-    return {"id":str(assignment.id),"subject":assignment.subject.name,"title":assignment.title,"description":assignment.description,"notes":assignment.notes,"deadline":assignment.deadline,"locked":datetime.now(timezone.utc)>=assignment.deadline,"submitted_at":submission.submitted_at if submission else None,"comment":submission.comment if submission else None,"attachments":[{"id":str(f.id),"name":f.original_name} for f in attachments],"submission_files":[{"id":str(f.id),"name":f.original_name} for f in files]}
+    return {"id":str(assignment.id),"subject":assignment.subject.name,"title":assignment.title,"description":assignment.description,"notes":assignment.notes,"deadline":assignment.deadline,"max_score":assignment.max_score,"results_published":assignment.results_published,"locked":datetime.now(timezone.utc)>=assignment.deadline,"submitted_at":submission.submitted_at if submission else None,"comment":submission.comment if submission else None,"score":submission.score if submission else None,"feedback":submission.feedback if submission else None,"graded_at":submission.graded_at if submission else None,"attachments":[{"id":str(f.id),"name":f.original_name} for f in attachments],"submission_files":[{"id":str(f.id),"name":f.original_name} for f in files]}
 def save_upload(upload:UploadFile, assignment_id=None, recipient_id=None,session=None):
     name=Path(upload.filename or "").name
     ext=Path(name).suffix.lower()
@@ -177,7 +182,7 @@ def class_overview(id:uuid.UUID,user=Depends(admin),session:Session=Depends(db))
  assignments={}
  for recipient in recipients:
   assignment=recipient.assignment
-  item=assignments.setdefault(assignment.id,{"id":str(assignment.id),"subject":assignment.subject.name,"title":assignment.title,"deadline":assignment.deadline,"recipient_count":0,"submitted_count":0})
+  item=assignments.setdefault(assignment.id,{"id":str(assignment.id),"subject":assignment.subject.name,"title":assignment.title,"deadline":assignment.deadline,"max_score":assignment.max_score,"results_published":assignment.results_published,"recipient_count":0,"submitted_count":0})
   item["recipient_count"]+=1
   item["submitted_count"]+=bool(submissions[recipient.id])
  for item in assignments.values(): item["state"]="completed" if item["deadline"]<=now_utc else "in_progress"
@@ -220,7 +225,7 @@ def create_assignment(data:AssignmentIn,user=Depends(admin),session:Session=Depe
   for candidate in candidates:
    existing_ids={recipient.student_id for recipient in session.scalars(select(Recipient).where(Recipient.assignment_id==candidate.id)).all()}
    if existing_ids==target_ids: err(409,"Bu sinf uchun aynan shu deadline avval yaratilgan")
- a=Assignment(subject_id=data.subject_id,title=data.title.strip(),description=data.description,notes=data.notes,deadline=deadline,creator_id=user.id);session.add(a);session.flush()
+ a=Assignment(subject_id=data.subject_id,title=data.title.strip(),description=data.description,notes=data.notes,deadline=deadline,creator_id=user.id,max_score=data.max_score);session.add(a);session.flush()
  for student in targets: session.add(Recipient(assignment_id=a.id,student_id=student.id))
  session.commit();return {"id":str(a.id),"recipients":len(targets)}
 @app.post("/api/v1/admin/assignments/{assignment_id}/attachments")
@@ -252,5 +257,43 @@ def recipients(assignment_id:uuid.UUID,class_id:uuid.UUID|None=None,user=Depends
  if class_id: rows=[r for r in rows if r.student.class_id==class_id]
  out=[]
  for r in rows:
-  sub=session.scalar(select(Submission).where(Submission.recipient_id==r.id));out.append({"student":serialize_user(r.student),"status":"submitted" if sub else ("locked" if datetime.now(timezone.utc)>=r.assignment.deadline else "pending"),"submitted_at":sub.submitted_at if sub else None,"comment":sub.comment if sub else None,"files":[{"id":str(f.id),"name":f.original_name} for f in session.scalars(select(StoredFile).where(StoredFile.recipient_id==r.id)).all()]})
+  sub=session.scalar(select(Submission).where(Submission.recipient_id==r.id))
+  st="graded" if (sub and sub.score is not None) else ("submitted" if sub else ("locked" if datetime.now(timezone.utc)>=r.assignment.deadline else "pending"))
+  out.append({"recipient_id":str(r.id),"student_id":str(r.student.id),"student_code":r.student.student_id,"full_name":r.student.full_name,"student":serialize_user(r.student),"submission_id":str(sub.id) if sub else None,"status":st,"score":sub.score if sub else None,"feedback":sub.feedback if sub else None,"graded_at":sub.graded_at if sub else None,"max_score":r.assignment.max_score,"submitted_at":sub.submitted_at if sub else None,"comment":sub.comment if sub else None,"files":[{"id":str(f.id),"name":f.original_name} for f in session.scalars(select(StoredFile).where(StoredFile.recipient_id==r.id)).all()]})
  return out
+@app.post("/api/v1/admin/submissions/{submission_id}/grade")
+def grade_submission(submission_id:uuid.UUID,data:GradeIn,user=Depends(admin),session:Session=Depends(db)):
+ sub=session.get(Submission,submission_id)
+ if not sub: err(404,"Topshiriq topilmadi")
+ max_s=sub.recipient.assignment.max_score or 100
+ if data.score>max_s: err(422,f"Baho ko‘pi bilan {max_s} bo‘lishi kerak")
+ sub.score=data.score
+ sub.feedback=data.feedback.strip() if data.feedback else None
+ sub.graded_at=datetime.now(timezone.utc)
+ session.commit()
+ return {"message":"Baho saqlandi","score":sub.score,"feedback":sub.feedback}
+@app.post("/api/v1/admin/assignments/{assignment_id}/publish-results")
+def toggle_publish(assignment_id:uuid.UUID,user=Depends(admin),session:Session=Depends(db)):
+ a=session.get(Assignment,assignment_id)
+ if not a: err(404,"Vazifa topilmadi")
+ a.results_published=not a.results_published
+ session.commit()
+ return {"results_published":a.results_published,"message":"Natijalar e‘lon qilindi" if a.results_published else "Natijalar yashirildi"}
+@app.get("/api/v1/dashboard/results")
+def dashboard_results(class_id:uuid.UUID|None=None,session:Session=Depends(db)):
+ q=select(Assignment).where(Assignment.results_published==True).order_by(Assignment.created_at.desc())
+ assignments=session.scalars(q).all()
+ results=[]
+ for a in assignments:
+  recs=session.scalars(select(Recipient).where(Recipient.assignment_id==a.id)).all()
+  if class_id: recs=[r for r in recs if r.student.class_id==class_id]
+  students_list=[]
+  for r in recs:
+   sub=session.scalar(select(Submission).where(Submission.recipient_id==r.id))
+   students_list.append({"student_name":r.student.full_name,"student_id":r.student.student_id,"class_name":r.student.classroom.name if r.student.classroom else "—","score":sub.score if sub else None,"feedback":sub.feedback if sub else None,"submitted":bool(sub),"submitted_at":sub.submitted_at if sub else None,"graded_at":sub.graded_at if sub else None})
+  students_list.sort(key=lambda x:(x["score"] is not None, x["score"] if x["score"] is not None else -1),reverse=True)
+  scored=[s["score"] for s in students_list if s["score"] is not None]
+  avg=round(sum(scored)/len(scored),1) if scored else 0
+  results.append({"assignment_id":str(a.id),"title":a.title,"subject":a.subject.name,"max_score":a.max_score,"deadline":a.deadline,"average_score":avg,"total_students":len(students_list),"graded_count":len(scored), "students":students_list})
+ return results
+
