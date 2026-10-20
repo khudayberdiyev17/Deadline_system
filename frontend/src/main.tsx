@@ -8,7 +8,8 @@ import {
   Container, Paper, TextField, Button as MuiButton, Card, CardContent, Chip,
   Stack, Alert, MenuItem, Grid2 as Grid, Divider, Avatar, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, LinearProgress, IconButton, Tooltip
+  TableContainer, TableHead, TableRow, LinearProgress, IconButton, Tooltip,
+  Snackbar
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -61,11 +62,7 @@ const theme = createTheme({
         root: {
           borderRadius: 12,
           padding: "10px 20px",
-          transition: "all 0.2s ease-in-out",
-          "&:hover": {
-            transform: "translateY(-1px)",
-            boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.2)"
-          }
+          transition: "all 0.2s ease-in-out"
         }
       }
     },
@@ -104,10 +101,85 @@ type User = { role: string; full_name: string; student_id?: string; class_name?:
 
 function fireConfetti() {
   confetti({
-    particleCount: 80,
-    spread: 70,
+    particleCount: 90,
+    spread: 75,
     origin: { y: 0.6 }
   });
+}
+
+// Interactive Animated Action Button with Loading and Success Feedback
+function FeedbackButton({
+  loading,
+  success,
+  successText = "Bajarildi!",
+  defaultText,
+  icon: Icon = Plus,
+  variant = "contained",
+  color = "primary",
+  fullWidth = false,
+  onClick,
+  type = "button",
+  disabled = false,
+  sx = {}
+}: any) {
+  return (
+    <motion.div whileTap={{ scale: 0.97 }} style={{ width: fullWidth ? "100%" : "auto" }}>
+      <MuiButton
+        type={type}
+        variant={success ? "contained" : variant}
+        color={success ? "success" : color}
+        fullWidth={fullWidth}
+        onClick={onClick}
+        disabled={loading || disabled}
+        sx={{
+          minHeight: 44,
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          bgcolor: success ? "#10b981 !important" : undefined,
+          color: success ? "#ffffff !important" : undefined,
+          boxShadow: success ? "0 8px 16px -2px rgba(16, 185, 129, 0.35) !important" : undefined,
+          ...sx
+        }}
+      >
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.span
+              key="loading"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <CircularProgress size={18} color="inherit" />
+              <span>Bajarilmoqda...</span>
+            </motion.span>
+          ) : success ? (
+            <motion.span
+              key="success"
+              initial={{ opacity: 0, scale: 0.5, y: 5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <Check size={20} strokeWidth={3} />
+              <span>{successText}</span>
+            </motion.span>
+          ) : (
+            <motion.span
+              key="default"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              {Icon && <Icon size={18} />}
+              <span>{defaultText}</span>
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </MuiButton>
+    </motion.div>
+  );
 }
 
 function Shell({
@@ -284,7 +356,7 @@ function Login({ onLogin }: { onLogin: (u: User) => void }) {
               required
               fullWidth
               label="O‘quvchi ID yoki login"
-              placeholder="nis@001 yoki cybertron"
+              placeholder="nis@384 yoki cybertron"
               value={i}
               onChange={e => setI(e.target.value)}
             />
@@ -672,8 +744,12 @@ function Student({ user }: { user: User }) {
   const [selected, setSelected] = useState<any>(null),
     [comment, setComment] = useState(""),
     [files, setFiles] = useState<File[]>([]),
-    [msg, setMsg] = useState(""),
-    [saving, setSaving] = useState(false);
+    [msg, setMsg] = useState("");
+
+  const [submitBtn, setSubmitBtn] = useState({ loading: false, success: false });
+  const [toast, setToast] = useState<{ open: boolean; message: string; severity: "success" | "error" | "info" }>({
+    open: false, message: "", severity: "success"
+  });
 
   const detail = useQuery({
     queryKey: ["assignment", selected?.assignment_id],
@@ -705,21 +781,28 @@ function Student({ user }: { user: User }) {
   };
 
   const submit = async () => {
-    if (!selected || saving) return;
+    if (!selected || submitBtn.loading) return;
     const data = new FormData();
     if (comment.trim()) data.append("comment", comment.trim());
     files.forEach(f => data.append("files", f));
     if (!files.length && !comment.trim()) { setMsg("Izoh yoki kamida bitta fayl kiriting"); return; }
-    setSaving(true);
+    
+    setSubmitBtn({ loading: true, success: false });
     try {
       await api.post("/assignments/" + selected.assignment_id + "/submissions", data);
+      setSubmitBtn({ loading: false, success: true });
       fireConfetti();
+      setToast({ open: true, message: "🎉 Vazifangiz muvaffaqiyatli topshirildi!", severity: "success" });
       q.refetch();
-      setSelected(null);
-      setMsg("");
+      setTimeout(() => {
+        setSelected(null);
+        setSubmitBtn({ loading: false, success: false });
+        setMsg("");
+      }, 1200);
     } catch (e: any) {
+      setSubmitBtn({ loading: false, success: false });
       setMsg(e.response?.data?.detail || "Saqlashda xatolik");
-    } finally { setSaving(false); }
+    }
   };
 
   const fileGrid = (items: any[], uploaded: boolean) => (
@@ -894,7 +977,7 @@ function Student({ user }: { user: User }) {
           </Grid>
 
           {/* Submission Modal */}
-          <Dialog open={!!selected} onClose={() => !saving && setSelected(null)} fullWidth maxWidth="md">
+          <Dialog open={!!selected} onClose={() => !submitBtn.loading && setSelected(null)} fullWidth maxWidth="md">
             <DialogTitle sx={{ pb: 1 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Box>
@@ -1029,16 +1112,38 @@ function Student({ user }: { user: User }) {
               )}
             </DialogContent>
             <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
-              <MuiButton color="inherit" onClick={() => setSelected(null)} disabled={saving}>
+              <MuiButton color="inherit" onClick={() => setSelected(null)} disabled={submitBtn.loading}>
                 Yopish
               </MuiButton>
               {!detail.data?.locked && !detail.data?.submitted_at && (
-                <MuiButton onClick={submit} disabled={saving} startIcon={<Send size={18} />}>
-                  {saving ? "Yuborilmoqda..." : "Topshiriqni yuborish"}
-                </MuiButton>
+                <FeedbackButton
+                  onClick={submit}
+                  loading={submitBtn.loading}
+                  success={submitBtn.success}
+                  defaultText="Topshiriqni yuborish"
+                  successText="Topshirildi! 🎉"
+                  icon={Send}
+                />
               )}
             </DialogActions>
           </Dialog>
+
+          {/* Floating Toast Notification */}
+          <Snackbar
+            open={toast.open}
+            autoHideDuration={4000}
+            onClose={() => setToast({ ...toast, open: false })}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <Alert
+              onClose={() => setToast({ ...toast, open: false })}
+              severity={toast.severity}
+              variant="filled"
+              sx={{ width: "100%", borderRadius: "14px", fontWeight: 700, boxShadow: 6 }}
+            >
+              {toast.message}
+            </Alert>
+          </Snackbar>
         </>
       )}
     </Shell>
@@ -1059,6 +1164,22 @@ function Admin() {
   const [scoreInput, setScoreInput] = useState<number | string>(""),
     [feedbackInput, setFeedbackInput] = useState("");
 
+  // Individual Button Animation States
+  const [classBtn, setClassBtn] = useState({ loading: false, success: false });
+  const [subjBtn, setSubjBtn] = useState({ loading: false, success: false });
+  const [taskBtn, setTaskBtn] = useState({ loading: false, success: false });
+  const [gradeBtn, setGradeBtn] = useState({ loading: false, success: false });
+  const [pubBtn, setPubBtn] = useState({ loading: false, success: false });
+
+  // Floating Toast Notification
+  const [toast, setToast] = useState<{ open: boolean; message: string; severity: "success" | "error" | "info" }>({
+    open: false, message: "", severity: "success"
+  });
+
+  const showToast = (message: string, severity: "success" | "error" | "info" = "success") => {
+    setToast({ open: true, message, severity });
+  };
+
   const overview = useQuery({
     queryKey: ["class-overview", selectedClass?.id],
     enabled: !!selectedClass,
@@ -1073,7 +1194,7 @@ function Admin() {
     }).then(r => r.data)
   });
 
-  const [cname, setCname] = useState(""), [sname, setSname] = useState(""), [notice, setNotice] = useState(""),
+  const [cname, setCname] = useState(""), [sname, setSname] = useState(""),
     [task, setTask] = useState<any>({
       subject_id: "", title: "", description: "", notes: "", deadline: "",
       target_type: "class", class_id: "", student_id: "", max_score: 100
@@ -1082,16 +1203,48 @@ function Admin() {
   const set = (k: string, v: any) => setTask({ ...task, [k]: v }),
     refresh = () => { stats.refetch(); cs.refetch(); subs.refetch(); students.refetch(); };
 
-  const quick = async (e: React.FormEvent, path: string, name: string, reset: () => void) => {
+  // Class Creation with Button Animation & Toast
+  const createClass = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cname.trim() || classBtn.loading) return;
+    setClassBtn({ loading: true, success: false });
     try {
-      await api.post(path, { name });
-      reset(); setNotice("Muvaffaqiyatli yaratildi"); refresh();
-    } catch (e: any) { setNotice(e.response?.data?.detail || "Xatolik"); }
+      await api.post("/admin/classes", { name: cname.trim() });
+      setClassBtn({ loading: false, success: true });
+      fireConfetti();
+      showToast(`🎉 "${cname.trim()}" sinfi muvaffaqiyatli qo‘shildi!`, "success");
+      setCname("");
+      refresh();
+      setTimeout(() => setClassBtn({ loading: false, success: false }), 2000);
+    } catch (e: any) {
+      setClassBtn({ loading: false, success: false });
+      showToast(e.response?.data?.detail || "Sinf yaratishda xatolik", "error");
+    }
   };
 
+  // Subject Creation with Button Animation & Toast
+  const createSubject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sname.trim() || subjBtn.loading) return;
+    setSubjBtn({ loading: true, success: false });
+    try {
+      await api.post("/admin/subjects", { name: sname.trim() });
+      setSubjBtn({ loading: false, success: true });
+      fireConfetti();
+      showToast(`🎉 "${sname.trim()}" fani muvaffaqiyatli qo‘shildi!`, "success");
+      setSname("");
+      refresh();
+      setTimeout(() => setSubjBtn({ loading: false, success: false }), 2000);
+    } catch (e: any) {
+      setSubjBtn({ loading: false, success: false });
+      showToast(e.response?.data?.detail || "Fan yaratishda xatolik", "error");
+    }
+  };
+
+  // Task Assignment with Button Animation & Toast
   const assign = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTaskBtn({ loading: true, success: false });
     try {
       const r = await api.post("/admin/assignments", {
         ...task,
@@ -1100,10 +1253,19 @@ function Admin() {
         class_id: task.target_type === "class" ? task.class_id : null,
         student_id: task.target_type === "student" ? task.student_id : null
       });
+      setTaskBtn({ loading: false, success: true });
       fireConfetti();
-      setNotice("Vazifa " + r.data.recipients + " ta o‘quvchiga muvaffaqiyatli biriktirildi!");
+      showToast(`🚀 Vazifa ${r.data.recipients} ta o‘quvchiga muvaffaqiyatli biriktirildi!`, "success");
+      setTask({
+        subject_id: "", title: "", description: "", notes: "", deadline: "",
+        target_type: "class", class_id: "", student_id: "", max_score: 100
+      });
       refresh();
-    } catch (e: any) { setNotice(e.response?.data?.detail || "Vazifa yaratilmadi"); }
+      setTimeout(() => setTaskBtn({ loading: false, success: false }), 2200);
+    } catch (e: any) {
+      setTaskBtn({ loading: false, success: false });
+      showToast(e.response?.data?.detail || "Vazifa yaratilmadi", "error");
+    }
   };
 
   const download = async (f: any) => {
@@ -1111,7 +1273,7 @@ function Admin() {
       const r = await api.get("/files/" + f.id, { responseType: "blob" });
       const url = URL.createObjectURL(r.data), a = document.createElement("a");
       a.href = url; a.download = f.name; a.click(); URL.revokeObjectURL(url);
-    } catch { setNotice("Faylni yuklab bo‘lmadi"); }
+    } catch { showToast("Faylni yuklab bo‘lmadi", "error"); }
   };
 
   const removeAssignment = async () => {
@@ -1120,19 +1282,26 @@ function Admin() {
       await api.delete("/admin/assignments/" + selectedAssignment.id);
       setSelectedSubmission(null); setSelectedAssignment(null);
       overview.refetch(); cs.refetch(); stats.refetch();
-      setNotice("Deadline o‘chirildi");
-    } catch (e: any) { setNotice(e.response?.data?.detail || "O‘chirilmadi"); }
+      showToast("Deadline o‘chirildi", "info");
+    } catch (e: any) { showToast(e.response?.data?.detail || "O‘chirilmadi", "error"); }
   };
 
+  // Results Publishing Toggle with Animation & Toast
   const togglePublish = async () => {
     if (!selectedAssignment) return;
+    setPubBtn({ loading: true, success: false });
     try {
       const r = await api.post("/admin/assignments/" + selectedAssignment.id + "/publish-results");
+      setPubBtn({ loading: false, success: true });
       fireConfetti();
-      setNotice(r.data.message);
+      showToast(r.data.message, "success");
       setSelectedAssignment({ ...selectedAssignment, results_published: r.data.results_published });
       overview.refetch();
-    } catch (e: any) { setNotice(e.response?.data?.detail || "Xatolik"); }
+      setTimeout(() => setPubBtn({ loading: false, success: false }), 2000);
+    } catch (e: any) {
+      setPubBtn({ loading: false, success: false });
+      showToast(e.response?.data?.detail || "Xatolik yuz berdi", "error");
+    }
   };
 
   const openGradeDialog = (r: any) => {
@@ -1141,20 +1310,27 @@ function Admin() {
     setFeedbackInput(r.feedback ?? "");
   };
 
+  // Grade Submission with Button Animation & Toast
   const saveGrade = async () => {
-    if (!selectedSubmission || !selectedSubmission.submission_id) return;
+    if (!selectedSubmission || !selectedSubmission.submission_id || gradeBtn.loading) return;
+    setGradeBtn({ loading: true, success: false });
     try {
       await api.post(`/admin/submissions/${selectedSubmission.submission_id}/grade`, {
         score: Number(scoreInput),
         feedback: feedbackInput
       });
+      setGradeBtn({ loading: false, success: true });
       fireConfetti();
-      setNotice("Baho muvaffaqiyatli saqlandi!");
-      setSelectedSubmission(null);
+      showToast(`⭐ ${selectedSubmission.full_name}ning ishi baholandi (${scoreInput} ball)!`, "success");
       recipients.refetch();
       overview.refetch();
+      setTimeout(() => {
+        setSelectedSubmission(null);
+        setGradeBtn({ loading: false, success: false });
+      }, 1200);
     } catch (e: any) {
-      setNotice(e.response?.data?.detail || "Bahoni saqlashda xatolik");
+      setGradeBtn({ loading: false, success: false });
+      showToast(e.response?.data?.detail || "Bahoni saqlashda xatolik", "error");
     }
   };
 
@@ -1216,16 +1392,47 @@ function Admin() {
                   Yangi sinflar va fanlar qo‘shish
                 </Typography>
 
-                <Box component="form" onSubmit={e => quick(e, "/admin/classes", cname, () => setCname(""))} sx={{ display: "grid", gap: 1.5, mb: 3 }}>
-                  <TextField size="small" label="Yangi sinf nomi" placeholder="Masalan: 10-A" value={cname} onChange={e => setCname(e.target.value)} required />
-                  <MuiButton type="submit" variant="outlined" startIcon={<Plus size={16} />}>Sinf qo‘shish</MuiButton>
+                <Box component="form" onSubmit={createClass} sx={{ display: "grid", gap: 1.5, mb: 3 }}>
+                  <TextField
+                    size="small"
+                    label="Yangi sinf nomi"
+                    placeholder="Masalan: 10-A"
+                    value={cname}
+                    onChange={e => setCname(e.target.value)}
+                    required
+                  />
+                  <FeedbackButton
+                    type="submit"
+                    loading={classBtn.loading}
+                    success={classBtn.success}
+                    defaultText="Sinf qo‘shish"
+                    successText="Sinf qo‘shildi! 🎉"
+                    icon={Plus}
+                    fullWidth
+                  />
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
 
-                <Box component="form" onSubmit={e => quick(e, "/admin/subjects", sname, () => setSname(""))} sx={{ display: "grid", gap: 1.5 }}>
-                  <TextField size="small" label="Yangi fan nomi" placeholder="Masalan: Fizika" value={sname} onChange={e => setSname(e.target.value)} required />
-                  <MuiButton type="submit" variant="outlined" startIcon={<Plus size={16} />}>Fan qo‘shish</MuiButton>
+                <Box component="form" onSubmit={createSubject} sx={{ display: "grid", gap: 1.5 }}>
+                  <TextField
+                    size="small"
+                    label="Yangi fan nomi"
+                    placeholder="Masalan: Fizika"
+                    value={sname}
+                    onChange={e => setSname(e.target.value)}
+                    required
+                  />
+                  <FeedbackButton
+                    type="submit"
+                    loading={subjBtn.loading}
+                    success={subjBtn.success}
+                    defaultText="Fan qo‘shish"
+                    successText="Fan qo‘shildi! 🎉"
+                    icon={BookOpen}
+                    fullWidth
+                    color="secondary"
+                  />
                 </Box>
               </Paper>
             </Grid>
@@ -1292,11 +1499,17 @@ function Admin() {
                     </Grid>
                   </Grid>
 
-                  <MuiButton type="submit" size="large" sx={{ mt: 1 }}>
-                    Vazifani e‘lon qilish
-                  </MuiButton>
+                  <Box sx={{ mt: 1 }}>
+                    <FeedbackButton
+                      type="submit"
+                      loading={taskBtn.loading}
+                      success={taskBtn.success}
+                      defaultText="Vazifani e‘lon qilish"
+                      successText="Vazifa biriktirildi! 🚀"
+                      icon={Megaphone}
+                    />
+                  </Box>
                 </Box>
-                {notice && <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>{notice}</Alert>}
               </Paper>
             </Grid>
           </Grid>
@@ -1402,14 +1615,16 @@ function Admin() {
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1}>
-                  <MuiButton
+                  <FeedbackButton
                     size="small"
                     color={selectedAssignment?.results_published ? "secondary" : "primary"}
-                    startIcon={<Megaphone size={16} />}
+                    loading={pubBtn.loading}
+                    success={pubBtn.success}
+                    defaultText={selectedAssignment?.results_published ? "Natijalarni yashirish" : "Natijalarni e‘lon qilish"}
+                    successText="Natija e‘lon qilindi! 📢"
+                    icon={Megaphone}
                     onClick={togglePublish}
-                  >
-                    {selectedAssignment?.results_published ? "Natijalarni yashirish" : "Natijalarni e‘lon qilish"}
-                  </MuiButton>
+                  />
                   <MuiButton color="error" size="small" variant="outlined" startIcon={<Trash2 size={16} />} onClick={removeAssignment}>
                     O‘chirish
                   </MuiButton>
@@ -1474,7 +1689,7 @@ function Admin() {
           </Dialog>
 
           {/* Grade Submission Dialog */}
-          <Dialog open={!!selectedSubmission} onClose={() => setSelectedSubmission(null)} fullWidth maxWidth="sm">
+          <Dialog open={!!selectedSubmission} onClose={() => !gradeBtn.loading && setSelectedSubmission(null)} fullWidth maxWidth="sm">
             <DialogTitle>
               <Typography variant="h6" fontWeight={800}>
                 {selectedSubmission?.full_name} — Ishni Baholash
@@ -1527,10 +1742,36 @@ function Admin() {
               </Stack>
             </DialogContent>
             <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
-              <MuiButton color="inherit" onClick={() => setSelectedSubmission(null)}>Yopish</MuiButton>
-              <MuiButton onClick={saveGrade} startIcon={<Trophy size={16} />}>Bahoni saqlash</MuiButton>
+              <MuiButton color="inherit" onClick={() => setSelectedSubmission(null)} disabled={gradeBtn.loading}>
+                Yopish
+              </MuiButton>
+              <FeedbackButton
+                onClick={saveGrade}
+                loading={gradeBtn.loading}
+                success={gradeBtn.success}
+                defaultText="Bahoni saqlash"
+                successText="Baho saqlandi! ⭐"
+                icon={Trophy}
+              />
             </DialogActions>
           </Dialog>
+
+          {/* Floating Toast Notification */}
+          <Snackbar
+            open={toast.open}
+            autoHideDuration={4000}
+            onClose={() => setToast({ ...toast, open: false })}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <Alert
+              onClose={() => setToast({ ...toast, open: false })}
+              severity={toast.severity}
+              variant="filled"
+              sx={{ width: "100%", borderRadius: "14px", fontWeight: 700, boxShadow: 6 }}
+            >
+              {toast.message}
+            </Alert>
+          </Snackbar>
         </>
       )}
     </Shell>
