@@ -69,10 +69,13 @@ def register(data:Register, session:Session=Depends(db)):
     err(409,"Bo‘sh o‘quvchi ID topilmadi; administrator bilan bog‘laning")
 @app.post("/api/v1/auth/login")
 def login(data:Login, request:Request, session:Session=Depends(db)):
-    key=request.client.host if request.client else "unknown"; now=time.time()
+    client_ip=request.headers.get("x-forwarded-for","").split(",")[0].strip() or request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
+    ident=data.identity.strip()
+    key=f"{client_ip}:{ident.lower()}"
+    now=time.time()
     old=[t for t in attempts.get(key,[]) if now-t<300]
-    if len(old)>=8: err(429,"Juda ko‘p urinish. Keyinroq qayta urinib ko‘ring")
-    user=session.execute(select(User).where((User.student_id==data.identity)|(User.username==data.identity))).scalar_one_or_none()
+    if len(old)>=15: err(429,"Juda ko‘p urinish. Keyinroq qayta urinib ko‘ring")
+    user=session.execute(select(User).where((func.lower(User.student_id)==ident.lower())|(func.lower(User.username)==ident.lower()))).scalar_one_or_none()
     try: valid=bool(user) and ph.verify(user.password_hash,data.password)
     except Exception: valid=False
     if not valid: attempts[key]=old+[now]; err(401,"ID yoki parol noto‘g‘ri")
