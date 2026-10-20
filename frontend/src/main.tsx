@@ -8,13 +8,15 @@ import {
   Container, Paper, TextField, Button as MuiButton, Card, CardContent, Chip,
   Stack, Alert, MenuItem, Grid2 as Grid, Divider, Avatar, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Tabs, Tab
+  TableContainer, TableHead, TableRow, LinearProgress, IconButton, Tooltip
 } from "@mui/material";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import {
-  Assignment, School, Logout, AddTask, Lock, CheckCircle, Schedule, People,
-  Class, MenuBook, ArrowBack, UploadFile, EmojiEvents, Leaderboard, Campaign
-} from "@mui/icons-material";
-import { Button } from "./components/ui/button";
+  GraduationCap, Trophy, Award, Clock, CheckCircle2, AlertCircle, FileText,
+  UploadCloud, Send, LogOut, ArrowLeft, Plus, Sparkles, BookOpen, Users,
+  School, Calendar, Eye, Trash2, Megaphone, Check, Lock, ChevronRight
+} from "lucide-react";
 import "./style.css";
 
 const api = axios.create({ baseURL: "/api/v1" });
@@ -35,20 +37,64 @@ api.interceptors.response.use(
 
 const theme = createTheme({
   palette: {
-    primary: { main: "#126c4e" },
-    secondary: { main: "#d2a84a" },
-    background: { default: "#f5f7f8" }
+    primary: { main: "#4f46e5", light: "#818cf8", dark: "#3730a3" },
+    secondary: { main: "#06b6d4", light: "#67e8f9", dark: "#0e7490" },
+    success: { main: "#10b981", light: "#6ee7b7", dark: "#047857" },
+    warning: { main: "#f59e0b", light: "#fcd34d", dark: "#b45309" },
+    error: { main: "#ef4444", light: "#fca5a5", dark: "#b91c1c" },
+    background: { default: "#f8fafc", paper: "#ffffff" },
+    text: { primary: "#0f172a", secondary: "#64748b" }
   },
-  shape: { borderRadius: 14 },
+  shape: { borderRadius: 16 },
   typography: {
-    fontFamily: "Inter,system-ui,sans-serif",
-    h4: { fontWeight: 800 }
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+    h4: { fontWeight: 800, letterSpacing: "-0.03em" },
+    h5: { fontWeight: 700, letterSpacing: "-0.02em" },
+    h6: { fontWeight: 700, letterSpacing: "-0.01em" },
+    subtitle1: { fontWeight: 600 },
+    button: { textTransform: "none", fontWeight: 700 }
   },
   components: {
     MuiButton: {
       defaultProps: { variant: "contained", disableElevation: true },
       styleOverrides: {
-        root: { borderRadius: 10, textTransform: "none", fontWeight: 700, minHeight: 43 }
+        root: {
+          borderRadius: 12,
+          padding: "10px 20px",
+          transition: "all 0.2s ease-in-out",
+          "&:hover": {
+            transform: "translateY(-1px)",
+            boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.2)"
+          }
+        }
+      }
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)"
+        }
+      }
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          border: "1px solid #e2e8f0"
+        }
+      }
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          backgroundColor: "#ffffff",
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#94a3b8"
+          }
+        }
       }
     }
   }
@@ -56,8 +102,16 @@ const theme = createTheme({
 
 type User = { role: string; full_name: string; student_id?: string; class_name?: string };
 
+function fireConfetti() {
+  confetti({
+    particleCount: 80,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
+}
+
 function Shell({
-  children, title, subtitle, onLogout, tab, setTab
+  children, title, subtitle, onLogout, tab, setTab, user
 }: {
   children: React.ReactNode;
   title: string;
@@ -65,44 +119,133 @@ function Shell({
   onLogout?: () => void;
   tab?: string;
   setTab?: (t: string) => void;
+  user?: User;
 }) {
   return (
-    <>
-      <AppBar position="sticky" elevation={0} color="inherit">
-        <Toolbar sx={{ borderBottom: "1px solid #e7ecef" }}>
-          <Stack direction="row" alignItems="center" spacing={1.3} sx={{ flexGrow: 1 }}>
-            <Avatar sx={{ bgcolor: "primary.main", width: 34, height: 34 }}>
-              <School fontSize="small" />
-            </Avatar>
-            <Typography fontWeight={800}>NIS Vazifalar</Typography>
-          </Stack>
-          {setTab && (
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mr: 2 }}>
-              <Tab value="main" label="Vazifalar" icon={<Assignment fontSize="small" />} iconPosition="start" />
-              <Tab value="dashboard" label="Natijalar Dashboardi" icon={<Leaderboard fontSize="small" />} iconPosition="start" />
-            </Tabs>
-          )}
-          {onLogout && (
-            <MuiButton color="inherit" startIcon={<Logout />} onClick={onLogout}>
-              Chiqish
-            </MuiButton>
-          )}
-        </Toolbar>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          bgcolor: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+          color: "text.primary"
+        }}
+      >
+        <Container maxWidth="lg">
+          <Toolbar disableGutters sx={{ minHeight: 70, gap: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1 }}>
+              <Avatar
+                sx={{
+                  bgcolor: "primary.main",
+                  width: 40,
+                  height: 40,
+                  boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.4)"
+                }}
+              >
+                <GraduationCap size={22} color="#ffffff" />
+              </Avatar>
+              <Box>
+                <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.2 }}>
+                  NIS <span style={{ color: "#4f46e5" }}>Portal</span>
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Topshiriq & Baholash
+                </Typography>
+              </Box>
+            </Stack>
+
+            {setTab && (
+              <Box sx={{ bgcolor: "#f1f5f9", p: "4px", borderRadius: "14px", display: "flex", gap: "4px" }}>
+                <MuiButton
+                  size="small"
+                  variant={tab === "main" ? "contained" : "text"}
+                  color={tab === "main" ? "primary" : "inherit"}
+                  startIcon={<FileText size={16} />}
+                  onClick={() => setTab("main")}
+                  sx={{
+                    borderRadius: "10px",
+                    px: 2,
+                    py: 0.8,
+                    bgcolor: tab === "main" ? "primary.main" : "transparent",
+                    color: tab === "main" ? "#ffffff" : "text.secondary",
+                    "&:hover": { bgcolor: tab === "main" ? "primary.dark" : "rgba(0,0,0,0.04)" }
+                  }}
+                >
+                  Vazifalar
+                </MuiButton>
+                <MuiButton
+                  size="small"
+                  variant={tab === "dashboard" ? "contained" : "text"}
+                  color={tab === "dashboard" ? "primary" : "inherit"}
+                  startIcon={<Trophy size={16} />}
+                  onClick={() => { setTab("dashboard"); fireConfetti(); }}
+                  sx={{
+                    borderRadius: "10px",
+                    px: 2,
+                    py: 0.8,
+                    bgcolor: tab === "dashboard" ? "primary.main" : "transparent",
+                    color: tab === "dashboard" ? "#ffffff" : "text.secondary",
+                    "&:hover": { bgcolor: tab === "dashboard" ? "primary.dark" : "rgba(0,0,0,0.04)" }
+                  }}
+                >
+                  Natijalar Dashboardi
+                </MuiButton>
+              </Box>
+            )}
+
+            {user && (
+              <Chip
+                avatar={<Avatar sx={{ bgcolor: user.role === "admin" ? "#f59e0b" : "#4f46e5", color: "#fff" }}>{user.full_name[0]}</Avatar>}
+                label={user.role === "admin" ? "Admin" : user.student_id}
+                variant="outlined"
+                sx={{ fontWeight: 700, borderColor: "#cbd5e1" }}
+              />
+            )}
+
+            {onLogout && (
+              <Tooltip title="Tizimdan chiqish">
+                <IconButton
+                  onClick={onLogout}
+                  sx={{
+                    color: "text.secondary",
+                    bgcolor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    "&:hover": { color: "error.main", bgcolor: "#fef2f2" }
+                  }}
+                >
+                  <LogOut size={18} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Toolbar>
+        </Container>
       </AppBar>
+
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-        <Typography variant="h4">{title}</Typography>
-        {subtitle && <Typography color="text.secondary" sx={{ mt: 0.8, mb: 3 }}>{subtitle}</Typography>}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>{title}</Typography>
+          {subtitle && (
+            <Typography color="text.secondary" sx={{ mt: 0.6, mb: 3.5, fontSize: "1.05rem" }}>
+              {subtitle}
+            </Typography>
+          )}
+        </motion.div>
         {children}
       </Container>
-    </>
+    </Box>
   );
 }
 
 function Login({ onLogin }: { onLogin: (u: User) => void }) {
-  const [i, setI] = useState(""), [p, setP] = useState(""), [err, setErr] = useState("");
+  const [i, setI] = useState(""), [p, setP] = useState(""), [err, setErr] = useState(""), [loading, setLoading] = useState(false);
   const nav = useNavigate();
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setErr("");
     try {
       const r = await api.post("/auth/login", { identity: i, password: p });
       localStorage.setItem("token", r.data.access_token);
@@ -110,64 +253,175 @@ function Login({ onLogin }: { onLogin: (u: User) => void }) {
       nav("/");
     } catch (e: any) {
       setErr(e.response?.data?.detail || "Kirish amalga oshmadi");
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box className="auth-background">
-      <Paper className="auth-paper" elevation={0}>
-        <Avatar sx={{ bgcolor: "primary.main", width: 52, height: 52, mb: 2 }}><School /></Avatar>
-        <Typography variant="h4">Xush kelibsiz</Typography>
-        <Typography color="text.secondary" sx={{ mt: 1 }}>O‘quvchi ID yoki administrator hisobi bilan kiring.</Typography>
-        <Box component="form" onSubmit={submit} sx={{ display: "grid", gap: 2.1, mt: 4 }}>
-          <TextField required label="O‘quvchi ID yoki login" placeholder="nis@123 yoki cybertron" value={i} onChange={e => setI(e.target.value)} />
-          <TextField required label="Parol" type="password" value={p} onChange={e => setP(e.target.value)} />
-          {err && <Alert severity="error">{err}</Alert>}
-          <MuiButton type="submit" size="large">Kirish</MuiButton>
-        </Box>
-        <Divider sx={{ my: 3 }}>yoki</Divider>
-        <Button variant="ghost" className="full-width" onClick={() => nav("/register")}>O‘quvchi sifatida ro‘yxatdan o‘tish</Button>
-      </Paper>
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+        <Paper className="auth-card" elevation={0}>
+          <Stack alignItems="center" textAlign="center" spacing={1.5} sx={{ mb: 3.5 }}>
+            <Avatar
+              sx={{
+                bgcolor: "primary.main",
+                width: 58,
+                height: 58,
+                boxShadow: "0 12px 24px -6px rgba(79, 70, 229, 0.4)"
+              }}
+            >
+              <GraduationCap size={32} color="#ffffff" />
+            </Avatar>
+            <Typography variant="h4" fontWeight={800}>Xush kelibsiz</Typography>
+            <Typography variant="body2" color="text.secondary">
+              NIS Deadline & Baholash tizimiga kirish
+            </Typography>
+          </Stack>
+
+          <Box component="form" onSubmit={submit} sx={{ display: "grid", gap: 2.2 }}>
+            <TextField
+              required
+              fullWidth
+              label="O‘quvchi ID yoki login"
+              placeholder="nis@001 yoki cybertron"
+              value={i}
+              onChange={e => setI(e.target.value)}
+            />
+            <TextField
+              required
+              fullWidth
+              label="Parol"
+              type="password"
+              placeholder="••••••••"
+              value={p}
+              onChange={e => setP(e.target.value)}
+            />
+            {err && <Alert severity="error" sx={{ borderRadius: "12px" }}>{err}</Alert>}
+            <MuiButton type="submit" size="large" disabled={loading} sx={{ height: 48 }}>
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Tizimga kirish"}
+            </MuiButton>
+          </Box>
+
+          <Divider sx={{ my: 3.5 }}>
+            <Typography variant="caption" color="text.secondary">YOKI</Typography>
+          </Divider>
+
+          <MuiButton
+            variant="outlined"
+            fullWidth
+            onClick={() => nav("/register")}
+            sx={{
+              height: 46,
+              color: "text.primary",
+              borderColor: "#e2e8f0",
+              "&:hover": { borderColor: "primary.main", bgcolor: "#f8fafc" }
+            }}
+          >
+            O‘quvchi sifatida ro‘yxatdan o‘tish
+          </MuiButton>
+        </Paper>
+      </motion.div>
     </Box>
   );
 }
 
 function Register() {
-  const [cs, setCs] = useState<any[]>([]), [f, setF] = useState<any>({ full_name: "", class_id: "", password: "", confirm: "" }), [msg, setMsg] = useState(""), [ok, setOk] = useState(false);
+  const [cs, setCs] = useState<any[]>([]),
+    [f, setF] = useState<any>({ full_name: "", class_id: "", password: "", confirm: "" }),
+    [msg, setMsg] = useState(""), [ok, setOk] = useState(false), [loading, setLoading] = useState(false);
   const nav = useNavigate();
-  useEffect(() => { api.get("/classes/public").then(r => setCs(r.data)); }, []);
+
+  useEffect(() => {
+    api.get("/classes/public").then(r => setCs(r.data));
+  }, []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (f.password !== f.confirm) return setMsg("Parollar bir xil emas");
+    setLoading(true);
     try {
       const r = await api.post("/auth/register", f);
       setOk(true);
-      setMsg("Sizning ID: " + r.data.student_id + ". Uni saqlang — 3 soniyada kirish sahifasiga o‘tasiz.");
-      setTimeout(() => nav("/login"), 3000);
+      setMsg("Sizning maxsus ID raqamingiz: " + r.data.student_id + ". Uni saqlab oling!");
+      fireConfetti();
+      setTimeout(() => nav("/login"), 3500);
     } catch (e: any) {
       setOk(false);
       setMsg(e.response?.data?.detail || "Ro‘yxatdan o‘tish amalga oshmadi");
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box className="auth-background">
-      <Paper className="auth-paper" elevation={0}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar sx={{ bgcolor: "secondary.main" }}><People /></Avatar>
-          <Box><Typography variant="h5">Ro‘yxatdan o‘tish</Typography><Typography variant="body2" color="text.secondary">Ma’lumotlarni kiriting</Typography></Box>
-        </Stack>
-        <Box component="form" onSubmit={submit} sx={{ display: "grid", gap: 2, mt: 3 }}>
-          <TextField required label="F.I.Sh." value={f.full_name} onChange={e => setF({ ...f, full_name: e.target.value })} />
-          <TextField required select label="Sinfi" value={f.class_id} onChange={e => setF({ ...f, class_id: e.target.value })}>
-            <MenuItem value="">Sinfi tanlang</MenuItem>
-            {cs.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
-          </TextField>
-          <TextField required label="Parol" type="password" helperText="Kamida 8 ta belgi" value={f.password} onChange={e => setF({ ...f, password: e.target.value })} />
-          <TextField required label="Parolni tasdiqlang" type="password" value={f.confirm} onChange={e => setF({ ...f, confirm: e.target.value })} />
-          {msg && <Alert severity={ok ? "success" : "error"}>{msg}</Alert>}
-          <MuiButton type="submit" disabled={ok}>Hisob yaratish</MuiButton>
-        </Box>
-        <Button variant="ghost" className="full-width" onClick={() => nav("/login")}><ArrowBack fontSize="small" /> Kirish sahifasiga qaytish</Button>
-      </Paper>
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+        <Paper className="auth-card" elevation={0}>
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+            <Avatar sx={{ bgcolor: "secondary.main", width: 44, height: 44 }}>
+              <Users size={22} color="#ffffff" />
+            </Avatar>
+            <Box>
+              <Typography variant="h5" fontWeight={800}>Ro‘yxatdan o‘tish</Typography>
+              <Typography variant="body2" color="text.secondary">O‘quvchi profilingizni yarating</Typography>
+            </Box>
+          </Stack>
+
+          <Box component="form" onSubmit={submit} sx={{ display: "grid", gap: 2 }}>
+            <TextField
+              required
+              fullWidth
+              label="F.I.Sh."
+              placeholder="Ali Valiyev"
+              value={f.full_name}
+              onChange={e => setF({ ...f, full_name: e.target.value })}
+            />
+            <TextField
+              required
+              select
+              fullWidth
+              label="Sinfi"
+              value={f.class_id}
+              onChange={e => setF({ ...f, class_id: e.target.value })}
+            >
+              <MenuItem value="">Sinfni tanlang</MenuItem>
+              {cs.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
+            </TextField>
+            <TextField
+              required
+              fullWidth
+              label="Parol"
+              type="password"
+              helperText="Kamida 8 ta belgi"
+              value={f.password}
+              onChange={e => setF({ ...f, password: e.target.value })}
+            />
+            <TextField
+              required
+              fullWidth
+              label="Parolni tasdiqlang"
+              type="password"
+              value={f.confirm}
+              onChange={e => setF({ ...f, confirm: e.target.value })}
+            />
+            {msg && <Alert severity={ok ? "success" : "error"} sx={{ borderRadius: "12px" }}>{msg}</Alert>}
+            <MuiButton type="submit" size="large" disabled={ok || loading} sx={{ height: 48 }}>
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Hisob yaratish"}
+            </MuiButton>
+          </Box>
+
+          <MuiButton
+            variant="text"
+            fullWidth
+            onClick={() => nav("/login")}
+            startIcon={<ArrowLeft size={16} />}
+            sx={{ mt: 2, color: "text.secondary" }}
+          >
+            Kirish sahifasiga qaytish
+          </MuiButton>
+        </Paper>
+      </motion.div>
     </Box>
   );
 }
@@ -179,8 +433,16 @@ function Countdown({ deadline }: { deadline: string }) {
     return () => clearInterval(t);
   }, []);
   const s = Math.max(0, Math.floor((new Date(deadline).getTime() - n) / 1000));
-  if (!s) return <>Muddat tugadi</>;
-  return <>{Math.floor(s / 86400) ? Math.floor(s / 86400) + " kun " : ""}{String(Math.floor(s % 86400 / 3600)).padStart(2, "0")}:{String(Math.floor(s % 3600 / 60)).padStart(2, "0")} qoldi</>;
+  if (!s) return <Typography component="span" color="error.main" fontWeight={700}>Muddat tugadi</Typography>;
+  const days = Math.floor(s / 86400);
+  const hrs = String(Math.floor((s % 86400) / 3600)).padStart(2, "0");
+  const mins = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const secs = String(s % 60).padStart(2, "0");
+  return (
+    <Typography component="span" fontWeight={700} color="warning.dark">
+      {days ? `${days} kun ` : ""}{hrs}:{mins}:{secs} qoldi
+    </Typography>
+  );
 }
 
 function DashboardView() {
@@ -190,91 +452,216 @@ function DashboardView() {
   });
 
   return (
-    <Stack spacing={3}>
-      <Paper sx={{ p: 3, bgcolor: "#f0f7f3", border: "1px solid #c9e5d4" }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar sx={{ bgcolor: "primary.main" }}><Campaign /></Avatar>
-          <Box>
-            <Typography variant="h6" fontWeight={800}>E‘lon qilingan natijalar va Reyting</Typography>
-            <Typography variant="body2" color="text.secondary">
-              O‘qituvchi tomonidan baholanib e‘lon qilingan barcha deadline topshiriqlari natijalari.
+    <Stack spacing={4}>
+      {/* Hero Banner */}
+      <Paper
+        sx={{
+          p: { xs: 3, md: 4 },
+          background: "linear-gradient(135deg, #4f46e5 0%, #3730a3 50%, #1e1b4b 100%)",
+          color: "#ffffff",
+          borderRadius: "24px",
+          position: "relative",
+          overflow: "hidden",
+          boxShadow: "0 20px 25px -5px rgba(79, 70, 229, 0.2)"
+        }}
+      >
+        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={2}>
+          <Box sx={{ maxWidth: 650 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <Chip
+                icon={<Sparkles size={14} color="#fcd34d" />}
+                label="Jonli Reyting"
+                size="small"
+                sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "#fff", fontWeight: 700 }}
+              />
+            </Stack>
+            <Typography variant="h4" fontWeight={800} sx={{ color: "#fff" }}>
+              Natijalar & Shon-sharaf Doskasi
+            </Typography>
+            <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.8)", mt: 1 }}>
+              O‘qituvchilar tomonidan baholangan va e‘lon qilingan barcha topshiriqlar bo‘yicha talabalar reytingi.
             </Typography>
           </Box>
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              bgcolor: "rgba(255, 255, 255, 0.12)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.2)"
+            }}
+          >
+            <Trophy size={42} color="#fcd34d" />
+          </Avatar>
         </Stack>
       </Paper>
 
-      {results.isLoading && <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>}
+      {results.isLoading && (
+        <Box sx={{ py: 6, textAlign: "center" }}><CircularProgress /></Box>
+      )}
 
       {results.data?.length === 0 && (
-        <Paper variant="outlined" sx={{ p: 4, textAlign: "center", color: "text.secondary" }}>
-          <EmojiEvents sx={{ fontSize: 48, color: "#d2a84a", mb: 1 }} />
-          <Typography variant="h6">Hozircha e‘lon qilingan natijalar yo‘q</Typography>
-          <Typography variant="body2">O‘qituvchi topshiriqlarni baholab, natijalarni e‘lon qilgach bu yerda ko‘rinadi.</Typography>
+        <Paper variant="outlined" sx={{ p: 6, textAlign: "center", bgcolor: "#fff", borderRadius: "24px" }}>
+          <Trophy size={56} color="#d2a84a" style={{ margin: "0 auto 16px" }} />
+          <Typography variant="h5" fontWeight={700}>Hozircha e‘lon qilingan natijalar yo‘q</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 450, mx: "auto" }}>
+            O‘qituvchi topshiriqlarni tekshirib, natijalarni e‘lon qilgach, bu yerda g‘oliblar shohsupasi va to‘liq jadval paydo bo‘ladi.
+          </Typography>
         </Paper>
       )}
 
-      {results.data?.map((a: any) => (
-        <Paper key={a.assignment_id} variant="outlined" sx={{ p: 2.5 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1} sx={{ mb: 2 }}>
-            <Box>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Chip label={a.subject} color="primary" size="small" />
-                <Typography variant="h6" fontWeight={700}>{a.title}</Typography>
+      {results.data?.map((a: any) => {
+        const top3 = a.students.slice(0, 3).filter((s: any) => s.score !== null);
+        return (
+          <motion.div
+            key={a.assignment_id}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: "24px", bgcolor: "#ffffff" }}>
+              {/* Task Header */}
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+                alignItems={{ sm: "center" }}
+                spacing={2}
+                sx={{ mb: 3 }}
+              >
+                <Box>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                    <Chip label={a.subject} color="primary" size="small" sx={{ fontWeight: 700 }} />
+                    <Chip label={`Maks: ${a.max_score} ball`} variant="outlined" size="small" />
+                  </Stack>
+                  <Typography variant="h5" fontWeight={800}>{a.title}</Typography>
+                </Box>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    bgcolor: "#f8fafc",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    borderRadius: "14px"
+                  }}
+                >
+                  <Box textAlign="right">
+                    <Typography variant="caption" color="text.secondary" display="block">O‘rtacha ball</Typography>
+                    <Typography variant="h6" fontWeight={800} color="primary.main">{a.average_score} ball</Typography>
+                  </Box>
+                  <Avatar sx={{ bgcolor: "#e0e7ff", color: "primary.main", width: 36, height: 36 }}>
+                    <Award size={20} />
+                  </Avatar>
+                </Paper>
               </Stack>
-              <Typography variant="caption" color="text.secondary">
-                Maksimal ball: {a.max_score} · O‘rtacha ball: {a.average_score} · Baholangan: {a.graded_count}/{a.total_students}
-              </Typography>
-            </Box>
-            <Chip icon={<EmojiEvents />} label={`O‘rtacha: ${a.average_score} / ${a.max_score}`} color="secondary" />
-          </Stack>
 
-          <TableContainer>
-            <Table size="small">
-              <TableHead sx={{ bgcolor: "#f8fafc" }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, width: 60 }}># O‘rin</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>O‘quvchi</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Sinfi</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="center">Baho / Ball</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>O‘qituvchi fikri</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {a.students.map((st: any, idx: number) => {
-                  const hasScore = st.score !== null && st.score !== undefined;
-                  const rankBadge = idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : String(idx + 1);
-                  return (
-                    <TableRow key={st.student_id + idx} hover sx={{ bgcolor: idx < 3 && hasScore ? "#fdfbf5" : "inherit" }}>
-                      <TableCell sx={{ fontWeight: idx < 3 ? 800 : 500 }}>{rankBadge}</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>{st.student_name}</TableCell>
-                      <TableCell>{st.student_id}</TableCell>
-                      <TableCell>{st.class_name}</TableCell>
-                      <TableCell align="center">
-                        {hasScore ? (
-                          <Chip
-                            size="small"
-                            label={`${st.score} / ${a.max_score}`}
-                            color={st.score >= a.max_score * 0.8 ? "success" : st.score >= a.max_score * 0.6 ? "primary" : "warning"}
-                            sx={{ fontWeight: 700 }}
-                          />
-                        ) : st.submitted ? (
-                          <Chip size="small" label="Tekshirilmoqda" variant="outlined" />
-                        ) : (
-                          <Chip size="small" label="Topshirmagan" color="error" variant="outlined" />
-                        )}
-                      </TableCell>
-                      <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
-                        {st.feedback || "—"}
-                      </TableCell>
+              {/* Podium for Top 3 */}
+              {top3.length > 0 && (
+                <Grid container spacing={2} sx={{ mb: 3.5 }}>
+                  {top3.map((st: any, idx: number) => {
+                    const podiumClass = idx === 0 ? "podium-1" : idx === 1 ? "podium-2" : "podium-3";
+                    const medal = idx === 0 ? "🥇 1-O‘rin" : idx === 1 ? "🥈 2-O‘rin" : "🥉 3-O‘rin";
+                    return (
+                      <Grid size={{ xs: 12, sm: 4 }} key={st.student_id}>
+                        <Paper
+                          className={podiumClass}
+                          sx={{
+                            p: 2,
+                            borderRadius: "18px",
+                            textAlign: "center",
+                            boxShadow: idx === 0 ? "0 10px 20px -3px rgba(245, 158, 11, 0.2)" : "none"
+                          }}
+                        >
+                          <Typography variant="caption" fontWeight={800} sx={{ textTransform: "uppercase" }}>
+                            {medal}
+                          </Typography>
+                          <Typography variant="h6" fontWeight={800} noWrap sx={{ mt: 0.5 }}>
+                            {st.student_name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {st.student_id} · {st.class_name}
+                          </Typography>
+                          <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ mt: 1 }}>
+                            {st.score} <span style={{ fontSize: "0.85rem", color: "#64748b" }}>/ {a.max_score}</span>
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              )}
+
+              {/* Leaderboard Table */}
+              <TableContainer sx={{ borderRadius: "16px", border: "1px solid #f1f5f9" }}>
+                <Table size="medium">
+                  <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700, width: 70 }}>O‘rin</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>O‘quvchi</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Sinfi</TableCell>
+                      <TableCell sx={{ fontWeight: 700, minWidth: 160 }}>Natija / Progress</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>O‘qituvchi taqrizi</TableCell>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      ))}
+                  </TableHead>
+                  <TableBody>
+                    {a.students.map((st: any, idx: number) => {
+                      const hasScore = st.score !== null && st.score !== undefined;
+                      const percentage = hasScore ? Math.round((st.score / a.max_score) * 100) : 0;
+                      return (
+                        <TableRow key={st.student_id + idx} hover sx={{ bgcolor: idx < 3 && hasScore ? "#fafcfb" : "inherit" }}>
+                          <TableCell sx={{ fontWeight: 800 }}>
+                            {idx === 0 ? "🥇 1" : idx === 1 ? "🥈 2" : idx === 2 ? "🥉 3" : idx + 1}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>{st.student_name}</TableCell>
+                          <TableCell sx={{ color: "text.secondary" }}>{st.student_id}</TableCell>
+                          <TableCell>{st.class_name}</TableCell>
+                          <TableCell>
+                            {hasScore ? (
+                              <Box sx={{ width: "100%" }}>
+                                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                                  <Typography variant="body2" fontWeight={800}>{st.score} ball</Typography>
+                                  <Typography variant="caption" color="text.secondary">{percentage}%</Typography>
+                                </Stack>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={percentage}
+                                  sx={{
+                                    height: 7,
+                                    borderRadius: 4,
+                                    bgcolor: "#e2e8f0",
+                                    "& .MuiLinearProgress-bar": {
+                                      bgcolor: percentage >= 80 ? "#10b981" : percentage >= 60 ? "#4f46e5" : "#f59e0b",
+                                      borderRadius: 4
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            ) : st.submitted ? (
+                              <Chip size="small" label="Tekshirilmoqda" variant="outlined" />
+                            ) : (
+                              <Chip size="small" label="Topshirmagan" color="error" variant="outlined" />
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
+                            {st.feedback ? (
+                              <Paper variant="outlined" sx={{ p: 1, bgcolor: "#f8fafc", borderRadius: "10px" }}>
+                                {st.feedback}
+                              </Paper>
+                            ) : "—"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </motion.div>
+        );
+      })}
     </Stack>
   );
 }
@@ -282,10 +669,24 @@ function DashboardView() {
 function Student({ user }: { user: User }) {
   const [tab, setTab] = useState("main");
   const q = useQuery({ queryKey: ["assignments"], queryFn: () => api.get("/student/assignments").then(r => r.data) });
-  const [selected, setSelected] = useState<any>(null), [comment, setComment] = useState(""), [files, setFiles] = useState<File[]>([]), [msg, setMsg] = useState(""), [saving, setSaving] = useState(false);
-  const detail = useQuery({ queryKey: ["assignment", selected?.assignment_id], enabled: !!selected, queryFn: () => api.get("/assignments/" + selected.assignment_id).then(r => r.data) });
+  const [selected, setSelected] = useState<any>(null),
+    [comment, setComment] = useState(""),
+    [files, setFiles] = useState<File[]>([]),
+    [msg, setMsg] = useState(""),
+    [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (detail.data) { setComment(detail.data.comment || ""); setFiles([]); } }, [detail.data?.id]);
+  const detail = useQuery({
+    queryKey: ["assignment", selected?.assignment_id],
+    enabled: !!selected,
+    queryFn: () => api.get("/assignments/" + selected.assignment_id).then(r => r.data)
+  });
+
+  useEffect(() => {
+    if (detail.data) {
+      setComment(detail.data.comment || "");
+      setFiles([]);
+    }
+  }, [detail.data?.id]);
 
   const download = async (f: any) => {
     try {
@@ -312,27 +713,45 @@ function Student({ user }: { user: User }) {
     setSaving(true);
     try {
       await api.post("/assignments/" + selected.assignment_id + "/submissions", data);
-      q.refetch(); setSelected(null); setMsg("");
+      fireConfetti();
+      q.refetch();
+      setSelected(null);
+      setMsg("");
     } catch (e: any) {
       setMsg(e.response?.data?.detail || "Saqlashda xatolik");
     } finally { setSaving(false); }
   };
 
   const fileGrid = (items: any[], uploaded: boolean) => (
-    <Grid container spacing={1.2}>
+    <Grid container spacing={1.5}>
       {items.map((f: any) => (
         <Grid key={uploaded ? f.id : f.name} size={{ xs: 12, sm: 6 }}>
-          <Paper variant="outlined" sx={{ p: 1.25, height: "100%", bgcolor: uploaded ? "#f3faf6" : "#fffaf0" }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Avatar variant="rounded" sx={{ width: 34, height: 34, bgcolor: uploaded ? "#dff2e7" : "#fff0ca", color: uploaded ? "success.main" : "#a66e00" }}>
-                <UploadFile fontSize="small" />
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 1.5,
+              borderRadius: "14px",
+              bgcolor: uploaded ? "#f0fdf4" : "#fefce8",
+              borderColor: uploaded ? "#bbf7d0" : "#fef08a",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: uploaded ? "#dcfce7" : "#fef9c3", color: uploaded ? "success.main" : "warning.dark" }}>
+                <FileText size={18} />
               </Avatar>
-              <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography variant="body2" fontWeight={700} noWrap title={f.name}>{f.name}</Typography>
-                <Typography variant="caption" color="text.secondary">{uploaded ? "Yuklangan" : "Saqlashga tayyor"}</Typography>
+                <Typography variant="caption" color="text.secondary">{uploaded ? "Yuklangan" : "Yuborishga tayyor"}</Typography>
               </Box>
-              {uploaded ? <MuiButton size="small" variant="text" onClick={() => download(f)}>Yuklash</MuiButton> : <MuiButton size="small" color="inherit" onClick={() => setFiles(files.filter(x => x.name !== f.name))}>Olib tashlash</MuiButton>}
             </Stack>
+            {uploaded ? (
+              <MuiButton size="small" variant="text" onClick={() => download(f)}>Yuklab olish</MuiButton>
+            ) : (
+              <MuiButton size="small" color="inherit" onClick={() => setFiles(files.filter(x => x.name !== f.name))}>O‘chirish</MuiButton>
+            )}
           </Paper>
         </Grid>
       ))}
@@ -342,17 +761,57 @@ function Student({ user }: { user: User }) {
   return (
     <Shell
       title={"Assalomu alaykum, " + user.full_name}
-      subtitle={(user.student_id || "") + " · " + (user.class_name || "")}
+      subtitle={`O‘quvchi ID: ${user.student_id || ""} · Sinfi: ${user.class_name || ""}`}
       onLogout={() => { localStorage.clear(); location.reload(); }}
       tab={tab}
       setTab={setTab}
+      user={user}
     >
       {tab === "dashboard" ? (
         <DashboardView />
       ) : (
         <>
+          {/* Welcome Statistics Card */}
+          <Paper
+            sx={{
+              p: 3,
+              mb: 4,
+              borderRadius: "20px",
+              background: "linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%)",
+              border: "1px solid #e0e7ff"
+            }}
+          >
+            <Grid container spacing={3} alignItems="center">
+              <Grid size={{ xs: 12, md: 8 }}>
+                <Typography variant="h5" fontWeight={800} color="primary.dark">
+                  Mening Topshiriqlarim
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  Vazifalarni vaqtida yuboring, ballaringizni tekshiring va natijalar doskasida yuqori o‘rinlarni egallang!
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Stack direction="row" spacing={2} justifyContent={{ md: "flex-end" }}>
+                  <Paper sx={{ px: 2, py: 1, textAlign: "center", borderRadius: "14px", bgcolor: "#fff" }}>
+                    <Typography variant="h5" fontWeight={800} color="primary.main">
+                      {q.data?.length || 0}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Jami vazifa</Typography>
+                  </Paper>
+                  <Paper sx={{ px: 2, py: 1, textAlign: "center", borderRadius: "14px", bgcolor: "#fff" }}>
+                    <Typography variant="h5" fontWeight={800} color="success.main">
+                      {q.data?.filter((x: any) => x.status === "graded" || x.status === "submitted").length || 0}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Topshirilgan</Typography>
+                  </Paper>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {q.isLoading && <Box sx={{ py: 6, textAlign: "center" }}><CircularProgress /></Box>}
+
           <Grid container spacing={2.5}>
-            {q.isLoading && <CircularProgress />}
             {q.data?.map((a: any) => {
               const isGraded = a.status === "graded";
               const sent = a.status === "submitted" || isGraded;
@@ -360,35 +819,71 @@ function Student({ user }: { user: User }) {
               return (
                 <Grid size={{ xs: 12, md: 6 }} key={a.assignment_id}>
                   <Card
+                    className="card-hover"
                     onClick={() => { setSelected(a); setComment(""); setFiles([]); setMsg(""); }}
                     sx={{
-                      height: "100%", cursor: "pointer",
-                      "&:hover": { transform: "translateY(-3px)", boxShadow: 5 },
-                      borderLeft: "5px solid " + (isGraded ? "#126c4e" : sent ? "#2e9b5f" : locked ? "#718096" : "#d2a84a")
+                      height: "100%",
+                      cursor: "pointer",
+                      borderRadius: "20px",
+                      position: "relative",
+                      borderLeft: "6px solid " + (isGraded ? "#10b981" : sent ? "#4f46e5" : locked ? "#94a3b8" : "#f59e0b")
                     }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 3 }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Chip label={a.subject} color="primary" size="small" />
+                        <Chip
+                          label={a.subject}
+                          size="small"
+                          sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }}
+                        />
                         {isGraded ? (
-                          <Chip icon={<EmojiEvents />} label={`Baho: ${a.score}/${a.max_score}`} color="success" size="small" />
+                          <Chip
+                            icon={<Trophy size={14} color="#10b981" />}
+                            label={`Baho: ${a.score}/${a.max_score}`}
+                            color="success"
+                            size="small"
+                            sx={{ fontWeight: 800 }}
+                          />
                         ) : sent ? (
-                          <Chip icon={<CheckCircle />} label="Topshirilgan" color="success" size="small" />
+                          <Chip icon={<CheckCircle2 size={14} />} label="Yuborildi" color="primary" size="small" />
                         ) : locked ? (
-                          <Chip icon={<Lock />} label="Yopilgan" size="small" />
+                          <Chip icon={<Lock size={14} />} label="Yopilgan" size="small" />
                         ) : (
-                          <Chip icon={<Schedule />} label="Kutilmoqda" color="warning" size="small" />
+                          <Chip icon={<Clock size={14} />} label="Jarayonda" color="warning" size="small" />
                         )}
                       </Stack>
-                      <Typography variant="h6" sx={{ mt: 2 }}>{a.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, minHeight: 40 }}>{a.description}</Typography>
-                      <Divider sx={{ my: 2 }} />
+
+                      <Typography variant="h6" fontWeight={800} sx={{ mt: 2 }}>{a.title}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, minHeight: 40 }}>
+                        {a.description}
+                      </Typography>
+
+                      <Divider sx={{ my: 2.5 }} />
+
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2" fontWeight={700}>
-                          {isGraded ? "Baholandi" : sent ? "Vaqtida yuborildi" : locked ? "Yopilgan — muddat tugagan" : <Countdown deadline={a.deadline} />}
-                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Calendar size={16} color="#64748b" />
+                          <Typography variant="body2">
+                            {isGraded ? (
+                              <span style={{ color: "#10b981", fontWeight: 700 }}>Baholandi</span>
+                            ) : sent ? (
+                              <span style={{ color: "#4f46e5", fontWeight: 700 }}>Vaqtida topshirildi</span>
+                            ) : locked ? (
+                              <span style={{ color: "#ef4444", fontWeight: 700 }}>Muddati o‘tgan</span>
+                            ) : (
+                              <Countdown deadline={a.deadline} />
+                            )}
+                          </Typography>
+                        </Stack>
+
                         {a.results_published && (
-                          <Chip label="Natijalar e‘lon qilindi" size="small" color="secondary" variant="outlined" />
+                          <Chip
+                            icon={<Trophy size={12} />}
+                            label="Natija e‘lon qilindi"
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                          />
                         )}
                       </Stack>
                     </CardContent>
@@ -398,48 +893,58 @@ function Student({ user }: { user: User }) {
             })}
           </Grid>
 
+          {/* Submission Modal */}
           <Dialog open={!!selected} onClose={() => !saving && setSelected(null)} fullWidth maxWidth="md">
-            <DialogTitle>{detail.data?.title || "Vazifa tafsilotlari"}</DialogTitle>
-            <DialogContent dividers sx={{ bgcolor: "#fafcfa" }}>
+            <DialogTitle sx={{ pb: 1 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography variant="h5" fontWeight={800}>{detail.data?.title || "Vazifa tafsilotlari"}</Typography>
+                  <Typography variant="caption" color="text.secondary">{detail.data?.subject}</Typography>
+                </Box>
+                <Chip label={`Maksimal ball: ${detail.data?.max_score || 100}`} color="primary" variant="outlined" />
+              </Stack>
+            </DialogTitle>
+            <DialogContent dividers sx={{ bgcolor: "#fafcfa", p: { xs: 2.5, md: 3.5 } }}>
               {detail.isLoading ? (
                 <Box sx={{ py: 6, textAlign: "center" }}><CircularProgress /></Box>
               ) : (
-                <Stack spacing={2.5}>
-                  <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
-                    <Box>
-                      <Chip label={detail.data?.subject || ""} color="primary" size="small" />
-                      <Typography sx={{ mt: 1.5 }}>{detail.data?.description}</Typography>
-                    </Box>
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 220 }}>
-                      <Typography fontWeight={800}>Deadline & Maksimal ball</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {detail.data?.deadline ? new Date(detail.data.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }) : ""}
-                      </Typography>
-                      <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
-                        Maksimal ball: {detail.data?.max_score || 100}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 0.75, color: detail.data?.locked ? "error.main" : "success.main", fontWeight: 700 }}>
-                        {detail.data?.locked ? "Muddat tugagan" : "Topshirish uchun vaqt bor"}
-                      </Typography>
-                    </Paper>
-                  </Stack>
+                <Stack spacing={3}>
+                  <Paper sx={{ p: 2.5, borderRadius: "16px", bgcolor: "#fff" }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Yo‘riqnoma:</Typography>
+                    <Typography variant="body1">{detail.data?.description}</Typography>
+                    {detail.data?.notes && (
+                      <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>
+                        {detail.data.notes}
+                      </Alert>
+                    )}
+                  </Paper>
 
+                  {/* Grade Banner */}
                   {detail.data?.score !== null && detail.data?.score !== undefined && (
-                    <Paper sx={{ p: 2, bgcolor: "#eaf6ee", border: "1px solid #9ad2b0" }}>
-                      <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Avatar sx={{ bgcolor: "success.main" }}><EmojiEvents /></Avatar>
+                    <Paper
+                      sx={{
+                        p: 3,
+                        borderRadius: "18px",
+                        background: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+                        border: "1px solid #a7f3d0"
+                      }}
+                    >
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar sx={{ bgcolor: "#10b981", width: 48, height: 48 }}>
+                          <Trophy size={26} color="#ffffff" />
+                        </Avatar>
                         <Box>
-                          <Typography variant="h6" fontWeight={800} color="success.main">
+                          <Typography variant="h5" fontWeight={800} color="#065f46">
                             Sizning natijangiz: {detail.data.score} / {detail.data.max_score} ball
                           </Typography>
                           {detail.data.feedback && (
-                            <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            <Typography variant="body2" sx={{ mt: 0.5, color: "#047857" }}>
                               <strong>O‘qituvchi taqrizi:</strong> {detail.data.feedback}
                             </Typography>
                           )}
                           {detail.data.graded_at && (
                             <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                              Baholangan vaqt: {new Date(detail.data.graded_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}
+                              Baholandi: {new Date(detail.data.graded_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}
                             </Typography>
                           )}
                         </Box>
@@ -447,53 +952,90 @@ function Student({ user }: { user: User }) {
                     </Paper>
                   )}
 
-                  {detail.data?.notes && <Alert severity="info">{detail.data.notes}</Alert>}
-
+                  {/* Teacher Attachments */}
                   {detail.data?.attachments?.length > 0 && (
                     <Box>
-                      <Typography fontWeight={800} sx={{ mb: 1 }}>O‘qituvchi biriktirgan fayllar</Typography>
+                      <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+                        O‘qituvchi ilova qilgan fayllar
+                      </Typography>
                       {fileGrid(detail.data.attachments, true)}
                     </Box>
                   )}
 
+                  {/* Uploaded Files */}
                   <Box>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Typography fontWeight={800}>Siz yuklagan fayllar</Typography>
-                      {detail.data?.submission_files?.length > 0 && (
-                        <Chip color="success" size="small" label={detail.data.submission_files.length + " ta fayl"} icon={<CheckCircle />} />
-                      )}
-                    </Stack>
-                    {detail.data?.submission_files?.length ? fileGrid(detail.data.submission_files, true) : (
-                      <Paper variant="outlined" sx={{ p: 2, textAlign: "center", color: "text.secondary" }}>Hali fayl yuklanmagan.</Paper>
+                    <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1.5 }}>
+                      Siz yuborgan fayllar
+                    </Typography>
+                    {detail.data?.submission_files?.length ? (
+                      fileGrid(detail.data.submission_files, true)
+                    ) : (
+                      <Paper variant="outlined" sx={{ p: 3, textAlign: "center", color: "text.secondary", borderRadius: "14px" }}>
+                        Hali fayl yuklanmagan.
+                      </Paper>
                     )}
                   </Box>
 
+                  {/* Upload Area for Student */}
                   {!detail.data?.locked && !detail.data?.submitted_at && (
-                    <>
-                      <Box>
-                        <Typography fontWeight={800} sx={{ mb: 1 }}>Yangi fayllar</Typography>
-                        <MuiButton component="label" variant="outlined" fullWidth startIcon={<UploadFile />} sx={{ height: 52, borderStyle: "dashed" }}>
-                          Fayllarni tanlash
-                          <input hidden multiple type="file" onChange={e => { addFiles(e.target.files); e.currentTarget.value = ""; }} />
-                        </MuiButton>
-                        <Typography variant="caption" color="text.secondary">Barcha fayl turlari qabul qilinadi. Har bir fayl hajmi cheklovi qo‘llanadi.</Typography>
-                        {files.length > 0 && <Box sx={{ mt: 1.25 }}>{fileGrid(files, false)}</Box>}
-                      </Box>
-                      <TextField multiline minRows={3} label="Izoh (ixtiyoriy)" value={comment} onChange={e => setComment(e.target.value)} placeholder="O‘qituvchiga izoh qoldiring" />
-                      {msg && <Alert severity={msg.includes("tayyor") ? "warning" : "error"}>{msg}</Alert>}
-                    </>
+                    <Stack spacing={2}>
+                      <Typography variant="subtitle1" fontWeight={700}>Yangi fayllar biriktirish</Typography>
+                      <MuiButton
+                        component="label"
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          height: 70,
+                          borderStyle: "dashed",
+                          borderWidth: 2,
+                          borderColor: "#cbd5e1",
+                          bgcolor: "#f8fafc",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 0.5
+                        }}
+                      >
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <UploadCloud size={20} color="#4f46e5" />
+                          <Typography fontWeight={700} color="primary.main">Fayllarni tanlash uchun bosing</Typography>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary">
+                          Har qanday format qabul qilinadi (maks: 10MB)
+                        </Typography>
+                        <input hidden multiple type="file" onChange={e => { addFiles(e.target.files); e.currentTarget.value = ""; }} />
+                      </MuiButton>
+
+                      {files.length > 0 && fileGrid(files, false)}
+
+                      <TextField
+                        multiline
+                        minRows={3}
+                        label="Izoh (ixtiyoriy)"
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        placeholder="O‘qituvchiga qo‘shimcha izoh yoki savollaringiz..."
+                      />
+
+                      {msg && <Alert severity="error" sx={{ borderRadius: "12px" }}>{msg}</Alert>}
+                    </Stack>
                   )}
 
-                  {detail.data?.submitted_at && (
-                    <Alert severity="success">Vazifa yuborilgan. Yuklangan fayllarni yuqoridan yuklab olishingiz mumkin.</Alert>
+                  {detail.data?.submitted_at && !detail.data?.score && (
+                    <Alert severity="success" sx={{ borderRadius: "12px" }}>
+                      Vazifangiz muvaffaqiyatli qabul qilingan. O‘qituvchi baholashi kutilmoqda.
+                    </Alert>
                   )}
                 </Stack>
               )}
             </DialogContent>
-            <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-              <MuiButton color="inherit" onClick={() => setSelected(null)} disabled={saving}>Yopish</MuiButton>
+            <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
+              <MuiButton color="inherit" onClick={() => setSelected(null)} disabled={saving}>
+                Yopish
+              </MuiButton>
               {!detail.data?.locked && !detail.data?.submitted_at && (
-                <MuiButton onClick={submit} disabled={saving} startIcon={<CheckCircle />}>{saving ? "Saqlanmoqda..." : "Saqlash va yopish"}</MuiButton>
+                <MuiButton onClick={submit} disabled={saving} startIcon={<Send size={18} />}>
+                  {saving ? "Yuborilmoqda..." : "Topshiriqni yuborish"}
+                </MuiButton>
               )}
             </DialogActions>
           </Dialog>
@@ -558,7 +1100,8 @@ function Admin() {
         class_id: task.target_type === "class" ? task.class_id : null,
         student_id: task.target_type === "student" ? task.student_id : null
       });
-      setNotice("Vazifa " + r.data.recipients + " o‘quvchiga biriktirildi");
+      fireConfetti();
+      setNotice("Vazifa " + r.data.recipients + " ta o‘quvchiga muvaffaqiyatli biriktirildi!");
       refresh();
     } catch (e: any) { setNotice(e.response?.data?.detail || "Vazifa yaratilmadi"); }
   };
@@ -572,19 +1115,20 @@ function Admin() {
   };
 
   const removeAssignment = async () => {
-    if (!selectedAssignment || !window.confirm("Bu deadline va unga bog‘liq barcha topshirishlar o‘chiriladi. Davom etasizmi?")) return;
+    if (!selectedAssignment || !window.confirm("Bu deadline va barcha topshirishlar o‘chiriladi. Davom etasizmi?")) return;
     try {
       await api.delete("/admin/assignments/" + selectedAssignment.id);
       setSelectedSubmission(null); setSelectedAssignment(null);
       overview.refetch(); cs.refetch(); stats.refetch();
       setNotice("Deadline o‘chirildi");
-    } catch (e: any) { setNotice(e.response?.data?.detail || "Deadline o‘chirilmadi"); }
+    } catch (e: any) { setNotice(e.response?.data?.detail || "O‘chirilmadi"); }
   };
 
   const togglePublish = async () => {
     if (!selectedAssignment) return;
     try {
       const r = await api.post("/admin/assignments/" + selectedAssignment.id + "/publish-results");
+      fireConfetti();
       setNotice(r.data.message);
       setSelectedAssignment({ ...selectedAssignment, results_published: r.data.results_published });
       overview.refetch();
@@ -604,7 +1148,8 @@ function Admin() {
         score: Number(scoreInput),
         feedback: feedbackInput
       });
-      setNotice("Baho muvaffaqiyatli saqlandi");
+      fireConfetti();
+      setNotice("Baho muvaffaqiyatli saqlandi!");
       setSelectedSubmission(null);
       recipients.refetch();
       overview.refetch();
@@ -613,41 +1158,17 @@ function Admin() {
     }
   };
 
-  const data = [
-    ["active_students", "Faol o‘quvchilar", <People />],
-    ["classes", "Sinflar", <Class />],
-    ["assignments", "Vazifalar", <Assignment />],
-    ["submitted", "Yuborilgan", <CheckCircle />]
+  const statCards = [
+    { key: "active_students", label: "Faol O‘quvchilar", icon: <Users size={24} />, color: "#4f46e5", bg: "#eef2ff" },
+    { key: "classes", label: "Sinflar Soni", icon: <School size={24} />, color: "#06b6d4", bg: "#ecfeff" },
+    { key: "assignments", label: "Vazifalar", icon: <FileText size={24} />, color: "#f59e0b", bg: "#fffbeb" },
+    { key: "submitted", label: "Topshirilgan", icon: <CheckCircle2 size={24} />, color: "#10b981", bg: "#ecfdf5" }
   ];
-
-  const assignmentGroup = (title: string, items: any[], empty: string) => (
-    <Box sx={{ mt: 2 }}>
-      <Typography fontWeight={800} sx={{ mb: 1 }}>{title}</Typography>
-      {items.length ? items.map((a: any) => (
-        <Card key={a.id} variant="outlined" onClick={() => setSelectedAssignment(a)} sx={{ mb: 1, cursor: "pointer" }}>
-          <CardContent sx={{ py: "12px !important" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Box>
-                <Typography fontWeight={700}>{a.title}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {a.subject} · {new Date(a.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={1} alignItems="center">
-                {a.results_published && <Chip label="E‘lon qilingan" size="small" color="secondary" />}
-                <Chip label={a.submitted_count + "/" + a.recipient_count} color={a.state === "completed" ? "default" : "primary"} size="small" />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-      )) : <Typography variant="body2" color="text.secondary">{empty}</Typography>}
-    </Box>
-  );
 
   return (
     <Shell
-      title="Boshqaruv markazi"
-      subtitle="Sinf, fan, deadline topshiriqlari, baholash va e‘lon qilish tizimi."
+      title="Boshqaruv Markazi"
+      subtitle="Sinflar, fanlar, topshiriqlar, baholash va natijalar e‘lon qilish tizimi."
       onLogout={() => { localStorage.clear(); location.reload(); }}
       tab={tab}
       setTab={setTab}
@@ -656,110 +1177,151 @@ function Admin() {
         <DashboardView />
       ) : (
         <>
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            {data.map((x: any) => (
-              <Grid size={{ xs: 6, md: 3 }} key={x[0]}>
-                <Card>
-                  <CardContent>
-                    <Stack direction="row" justifyContent="space-between">
-                      <Box>
-                        <Typography variant="h4">{stats.data?.[x[0]] ?? "—"}</Typography>
-                        <Typography variant="body2" color="text.secondary">{x[1]}</Typography>
-                      </Box>
-                      <Avatar sx={{ bgcolor: "#e5f3ec", color: "primary.main" }}>{x[2]}</Avatar>
-                    </Stack>
-                  </CardContent>
-                </Card>
+          {/* Stat Cards */}
+          <Grid container spacing={2.5} sx={{ mb: 4 }}>
+            {statCards.map(s => (
+              <Grid size={{ xs: 6, md: 3 }} key={s.key}>
+                <Paper
+                  sx={{
+                    p: 2.5,
+                    borderRadius: "20px",
+                    border: "1px solid #e2e8f0",
+                    transition: "transform 0.2s",
+                    "&:hover": { transform: "translateY(-3px)", boxShadow: "0 10px 20px -3px rgba(0,0,0,0.05)" }
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                      <Typography variant="h4" fontWeight={800}>{stats.data?.[s.key] ?? "—"}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 600 }}>
+                        {s.label}
+                      </Typography>
+                    </Box>
+                    <Avatar sx={{ bgcolor: s.bg, color: s.color, width: 48, height: 48 }}>
+                      {s.icon}
+                    </Avatar>
+                  </Stack>
+                </Paper>
               </Grid>
             ))}
           </Grid>
 
+          {/* Setup & Task Creation Grid */}
           <Grid container spacing={3}>
+            {/* Quick Setup */}
             <Grid size={{ xs: 12, md: 4 }}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6">Tezkor sozlamalar</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Avval sinf va fan yarating.</Typography>
-                <Box component="form" onSubmit={e => quick(e, "/admin/classes", cname, () => setCname(""))} sx={{ display: "grid", gap: 1.2, mb: 2 }}>
-                  <TextField required size="small" label="Yangi sinf" value={cname} onChange={e => setCname(e.target.value)} />
-                  <MuiButton type="submit" variant="outlined" startIcon={<Class />}>Sinf yaratish</MuiButton>
+              <Paper sx={{ p: 3, borderRadius: "20px" }}>
+                <Typography variant="h6" fontWeight={800}>Tezkor Sozlamalar</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                  Yangi sinflar va fanlar qo‘shish
+                </Typography>
+
+                <Box component="form" onSubmit={e => quick(e, "/admin/classes", cname, () => setCname(""))} sx={{ display: "grid", gap: 1.5, mb: 3 }}>
+                  <TextField size="small" label="Yangi sinf nomi" placeholder="Masalan: 10-A" value={cname} onChange={e => setCname(e.target.value)} required />
+                  <MuiButton type="submit" variant="outlined" startIcon={<Plus size={16} />}>Sinf qo‘shish</MuiButton>
                 </Box>
-                <Box component="form" onSubmit={e => quick(e, "/admin/subjects", sname, () => setSname(""))} sx={{ display: "grid", gap: 1.2 }}>
-                  <TextField required size="small" label="Yangi fan" value={sname} onChange={e => setSname(e.target.value)} />
-                  <MuiButton type="submit" variant="outlined" startIcon={<MenuBook />}>Fan yaratish</MuiButton>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box component="form" onSubmit={e => quick(e, "/admin/subjects", sname, () => setSname(""))} sx={{ display: "grid", gap: 1.5 }}>
+                  <TextField size="small" label="Yangi fan nomi" placeholder="Masalan: Fizika" value={sname} onChange={e => setSname(e.target.value)} required />
+                  <MuiButton type="submit" variant="outlined" startIcon={<Plus size={16} />}>Fan qo‘shish</MuiButton>
                 </Box>
               </Paper>
             </Grid>
 
+            {/* Task Creation */}
             <Grid size={{ xs: 12, md: 8 }}>
-              <Paper sx={{ p: 3 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Avatar sx={{ bgcolor: "primary.main" }}><AddTask /></Avatar>
+              <Paper sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: "20px" }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Avatar sx={{ bgcolor: "primary.main" }}>
+                    <Plus size={22} color="#ffffff" />
+                  </Avatar>
                   <Box>
-                    <Typography variant="h6">Deadline vazifa berish</Typography>
-                    <Typography variant="body2" color="text.secondary">Butun sinfga yoki bitta o‘quvchiga biriktiring.</Typography>
+                    <Typography variant="h6" fontWeight={800}>Yangi Deadline Vazifa</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Butun sinfga yoki alohida o‘quvchiga topshiriq biriktiring
+                    </Typography>
                   </Box>
                 </Stack>
+
                 <Box component="form" onSubmit={assign} sx={{ display: "grid", gap: 2, mt: 3 }}>
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField required select fullWidth label="Fan" value={task.subject_id} onChange={e => set("subject_id", e.target.value)}>
                         <MenuItem value="">Fanni tanlang</MenuItem>
-                        {subs.data?.filter((x: any) => x.active).map((x: any) => <MenuItem key={x.id} value={x.id}>{x.name}</MenuItem>)}
+                        {subs.data?.filter((x: any) => x.active).map((x: any) => (
+                          <MenuItem key={x.id} value={x.id}>{x.name}</MenuItem>
+                        ))}
                       </TextField>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField required fullWidth type="datetime-local" label="Deadline (Toshkent vaqti)" InputLabelProps={{ shrink: true }} value={task.deadline} onChange={e => set("deadline", e.target.value)} />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 8 }}>
-                      <TextField required fullWidth label="Vazifa sarlavhasi" value={task.title} onChange={e => set("title", e.target.value)} />
+                      <TextField required fullWidth label="Vazifa nomi" placeholder="Masalan: 3-Laboratoriya ishi" value={task.title} onChange={e => set("title", e.target.value)} />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
                       <TextField required fullWidth type="number" label="Maksimal ball" value={task.max_score} onChange={e => set("max_score", e.target.value)} />
                     </Grid>
                     <Grid size={12}>
-                      <TextField required fullWidth multiline minRows={3} label="Yo‘riqnoma" value={task.description} onChange={e => set("description", e.target.value)} />
+                      <TextField required fullWidth multiline minRows={3} label="Yo‘riqnoma va talablar" value={task.description} onChange={e => set("description", e.target.value)} />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 5 }}>
                       <TextField select fullWidth label="Kimga beriladi?" value={task.target_type} onChange={e => set("target_type", e.target.value)}>
-                        <MenuItem value="class">Butun sinf</MenuItem>
-                        <MenuItem value="student">Bitta o‘quvchi</MenuItem>
+                        <MenuItem value="class">Butun sinfga</MenuItem>
+                        <MenuItem value="student">Alohida o‘quvchiga</MenuItem>
                       </TextField>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 7 }}>
                       {task.target_type === "class" ? (
                         <TextField required select fullWidth label="Sinf" value={task.class_id} onChange={e => set("class_id", e.target.value)}>
                           <MenuItem value="">Sinfni tanlang</MenuItem>
-                          {cs.data?.filter((x: any) => x.active).map((x: any) => <MenuItem key={x.id} value={x.id}>{x.name} — {x.students} o‘quvchi</MenuItem>)}
+                          {cs.data?.filter((x: any) => x.active).map((x: any) => (
+                            <MenuItem key={x.id} value={x.id}>{x.name} — {x.students} o‘quvchi</MenuItem>
+                          ))}
                         </TextField>
                       ) : (
                         <TextField required select fullWidth label="O‘quvchi" value={task.student_id} onChange={e => set("student_id", e.target.value)}>
                           <MenuItem value="">O‘quvchini tanlang</MenuItem>
-                          {students.data?.filter((x: any) => x.active).map((x: any) => <MenuItem key={x.id} value={x.id}>{x.full_name} ({x.student_id})</MenuItem>)}
+                          {students.data?.filter((x: any) => x.active).map((x: any) => (
+                            <MenuItem key={x.id} value={x.id}>{x.full_name} ({x.student_id})</MenuItem>
+                          ))}
                         </TextField>
                       )}
                     </Grid>
                   </Grid>
-                  <MuiButton type="submit" startIcon={<AddTask />}>Vazifani biriktirish</MuiButton>
+
+                  <MuiButton type="submit" size="large" sx={{ mt: 1 }}>
+                    Vazifani e‘lon qilish
+                  </MuiButton>
                 </Box>
-                {notice && <Alert severity="info" sx={{ mt: 2 }}>{notice}</Alert>}
+                {notice && <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>{notice}</Alert>}
               </Paper>
             </Grid>
           </Grid>
 
-          <Typography variant="h5" sx={{ mt: 5, mb: 2 }}>Sinflar</Typography>
-          <Grid container spacing={2}>
+          {/* Classes Cards */}
+          <Typography variant="h5" fontWeight={800} sx={{ mt: 5, mb: 2.5 }}>Sinflar Holati</Typography>
+          <Grid container spacing={2.5}>
             {cs.data?.map((c: any) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={c.id}>
-                <Card onClick={() => setSelectedClass(c)} sx={{ cursor: "pointer", "&:hover": { transform: "translateY(-3px)", boxShadow: 5 } }}>
+                <Card
+                  className="card-hover"
+                  onClick={() => setSelectedClass(c)}
+                  sx={{ cursor: "pointer", borderRadius: "20px", p: 1 }}
+                >
                   <CardContent>
-                    <Stack direction="row" justifyContent="space-between">
-                      <Avatar sx={{ bgcolor: "#eaf3ef", color: "primary.main" }}><Class /></Avatar>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Avatar sx={{ bgcolor: "#e0e7ff", color: "primary.main" }}>
+                        <School size={20} />
+                      </Avatar>
                       <Chip label={c.active ? "Faol" : "Nofaol"} color={c.active ? "success" : "default"} size="small" />
                     </Stack>
-                    <Typography variant="h6" sx={{ mt: 2 }}>{c.name}</Typography>
+                    <Typography variant="h6" fontWeight={800} sx={{ mt: 2 }}>{c.name}</Typography>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-                      <Typography variant="body2" color="text.secondary">{c.students} faol o‘quvchi</Typography>
-                      <Chip icon={<Assignment />} label={c.task_count || 0} size="small" color="primary" variant="outlined" />
+                      <Typography variant="body2" color="text.secondary">{c.students} ta o‘quvchi</Typography>
+                      <Chip icon={<FileText size={14} />} label={`${c.task_count || 0} vazifa`} size="small" variant="outlined" />
                     </Stack>
                   </CardContent>
                 </Card>
@@ -767,22 +1329,24 @@ function Admin() {
             ))}
           </Grid>
 
-          {/* Sinf holati modali */}
+          {/* Class Overview Modal */}
           <Dialog open={!!selectedClass} onClose={() => { setSelectedClass(null); setSelectedAssignment(null); }} fullWidth maxWidth="md">
-            <DialogTitle>{selectedClass?.name} — sinf holati</DialogTitle>
-            <DialogContent dividers>
+            <DialogTitle>
+              <Typography variant="h5" fontWeight={800}>{selectedClass?.name} — Sinf faoliyati</Typography>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 3 }}>
               {overview.isLoading ? (
                 <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
               ) : (
-                <>
-                  <Typography variant="h6">O‘quvchilar</Typography>
-                  <Grid container spacing={1.2} sx={{ mt: 0.5 }}>
+                <Stack spacing={3}>
+                  <Typography variant="subtitle1" fontWeight={700}>O‘quvchilar ro‘yxati</Typography>
+                  <Grid container spacing={1.5}>
                     {overview.data?.students?.map((s: any) => {
-                      const color = s.state === "submitted" ? "success.main" : s.state === "overdue" ? "error.main" : "#94a3b8";
-                      const label = s.state === "submitted" ? "Topshirgan" : s.state === "overdue" ? "Topshirmagan — muddat tugagan" : "Jarayonda";
+                      const color = s.state === "submitted" ? "#10b981" : s.state === "overdue" ? "#ef4444" : "#94a3b8";
+                      const label = s.state === "submitted" ? "Topshirgan" : s.state === "overdue" ? "Topshirmagan" : "Jarayonda";
                       return (
                         <Grid key={s.id} size={{ xs: 12, sm: 6 }}>
-                          <Paper variant="outlined" sx={{ p: 1.5, borderLeft: "5px solid " + color }}>
+                          <Paper variant="outlined" sx={{ p: 1.5, borderRadius: "14px", borderLeft: "5px solid " + color }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                               <Box>
                                 <Typography fontWeight={700}>{s.full_name}</Typography>
@@ -795,20 +1359,44 @@ function Admin() {
                       );
                     })}
                   </Grid>
-                  {assignmentGroup("Jarayonda", overview.data?.assignments?.filter((a: any) => a.state === "in_progress") || [], "Hozir faol deadline yo‘q.")}
-                  {assignmentGroup("Tugallangan", overview.data?.assignments?.filter((a: any) => a.state === "completed") || [], "Tugallangan deadline yo‘q.")}
-                </>
+
+                  <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 2 }}>Vazifalar</Typography>
+                  <Grid container spacing={2}>
+                    {overview.data?.assignments?.map((a: any) => (
+                      <Grid size={{ xs: 12, sm: 6 }} key={a.id}>
+                        <Card variant="outlined" onClick={() => setSelectedAssignment(a)} sx={{ cursor: "pointer", p: 1, borderRadius: "16px" }}>
+                          <CardContent sx={{ py: "8px !important" }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                              <Box>
+                                <Typography fontWeight={700}>{a.title}</Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {a.subject} · {new Date(a.deadline).toLocaleDateString("uz-UZ")}
+                                </Typography>
+                              </Box>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                {a.results_published && <Chip label="E‘lon qilingan" size="small" color="secondary" />}
+                                <Chip label={`${a.submitted_count}/${a.recipient_count}`} color="primary" size="small" />
+                              </Stack>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Stack>
               )}
             </DialogContent>
-            <DialogActions><MuiButton color="inherit" onClick={() => setSelectedClass(null)}>Yopish</MuiButton></DialogActions>
+            <DialogActions sx={{ p: 2 }}>
+              <MuiButton color="inherit" onClick={() => setSelectedClass(null)}>Yopish</MuiButton>
+            </DialogActions>
           </Dialog>
 
-          {/* Vazifaning qabul qiluvchilari va baholash modali */}
+          {/* Assignment Recipients & Grading Modal */}
           <Dialog open={!!selectedAssignment} onClose={() => setSelectedAssignment(null)} fullWidth maxWidth="md">
             <DialogTitle>
-              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1}>
+              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.5}>
                 <Box>
-                  <Typography variant="h6">{selectedAssignment?.title}</Typography>
+                  <Typography variant="h5" fontWeight={800}>{selectedAssignment?.title}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     Maksimal ball: {selectedAssignment?.max_score || 100}
                   </Typography>
@@ -817,83 +1405,106 @@ function Admin() {
                   <MuiButton
                     size="small"
                     color={selectedAssignment?.results_published ? "secondary" : "primary"}
-                    startIcon={<Campaign />}
+                    startIcon={<Megaphone size={16} />}
                     onClick={togglePublish}
                   >
                     {selectedAssignment?.results_published ? "Natijalarni yashirish" : "Natijalarni e‘lon qilish"}
                   </MuiButton>
-                  <MuiButton color="error" size="small" variant="outlined" onClick={removeAssignment}>
+                  <MuiButton color="error" size="small" variant="outlined" startIcon={<Trash2 size={16} />} onClick={removeAssignment}>
                     O‘chirish
                   </MuiButton>
                 </Stack>
               </Stack>
             </DialogTitle>
-            <DialogContent dividers>
+            <DialogContent dividers sx={{ p: 3 }}>
               {recipients.isLoading ? (
                 <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
               ) : (
-                <Stack spacing={1.2}>
+                <Stack spacing={1.5}>
                   {recipients.data?.map((r: any) => {
                     const isGraded = r.status === "graded";
                     const isSubmitted = r.status === "submitted" || isGraded;
                     return (
-                      <Paper key={r.student_id} variant="outlined" sx={{ p: 1.5, borderLeft: "5px solid " + (isGraded ? "#126c4e" : isSubmitted ? "#2e9b5f" : "#d14343") }}>
+                      <Paper
+                        key={r.student_id}
+                        variant="outlined"
+                        sx={{
+                          p: 2,
+                          borderRadius: "16px",
+                          borderLeft: "6px solid " + (isGraded ? "#10b981" : isSubmitted ? "#4f46e5" : "#ef4444")
+                        }}
+                      >
                         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                           <Box>
                             <Typography fontWeight={700}>{r.full_name}</Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {r.student_code} · {isGraded ? `Baholandi: ${r.score}/${r.max_score}` : isSubmitted ? "Topshirgan (Baholanmagan)" : "Topshirmagan"}
+                              {r.student_code} · {isGraded ? `Baholandi: ${r.score}/${r.max_score}` : isSubmitted ? "Topshirgan (Kutilmoqda)" : "Topshirmagan"}
                             </Typography>
                           </Box>
-                          <Stack direction="row" spacing={1} alignItems="center">
+                          <Stack direction="row" spacing={1.5} alignItems="center">
                             {isGraded && (
-                              <Chip label={`Ball: ${r.score}/${r.max_score}`} color="success" size="small" />
+                              <Chip
+                                icon={<Trophy size={14} color="#10b981" />}
+                                label={`${r.score} / ${r.max_score}`}
+                                color="success"
+                                sx={{ fontWeight: 800 }}
+                              />
                             )}
                             {isSubmitted ? (
                               <MuiButton size="small" onClick={() => openGradeDialog(r)}>
-                                {isGraded ? "Bahoni ko‘rish / Tahrirlash" : "Baholash"}
+                                {isGraded ? "Bahoni tahrirlash" : "Baholash"}
                               </MuiButton>
                             ) : (
-                              <Chip label="Topshirmagan" color="error" size="small" />
+                              <Chip label="Topshirmagan" color="error" size="small" variant="outlined" />
                             )}
                           </Stack>
                         </Stack>
                       </Paper>
                     );
                   })}
-                  {!recipients.data?.length && <Typography color="text.secondary">Bu deadline uchun o‘quvchi topilmadi.</Typography>}
+                  {!recipients.data?.length && (
+                    <Typography color="text.secondary" textAlign="center">Bu deadline uchun o‘quvchi topilmadi.</Typography>
+                  )}
                 </Stack>
               )}
             </DialogContent>
-            <DialogActions><MuiButton color="inherit" onClick={() => setSelectedAssignment(null)}>Orqaga</MuiButton></DialogActions>
+            <DialogActions sx={{ p: 2 }}>
+              <MuiButton color="inherit" onClick={() => setSelectedAssignment(null)}>Orqaga</MuiButton>
+            </DialogActions>
           </Dialog>
 
-          {/* Topshirilgan ishni ko'rish va Baholash dialogi */}
+          {/* Grade Submission Dialog */}
           <Dialog open={!!selectedSubmission} onClose={() => setSelectedSubmission(null)} fullWidth maxWidth="sm">
-            <DialogTitle>{selectedSubmission?.full_name} — topshirilgan ish va baholash</DialogTitle>
-            <DialogContent dividers>
+            <DialogTitle>
+              <Typography variant="h6" fontWeight={800}>
+                {selectedSubmission?.full_name} — Ishni Baholash
+              </Typography>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 3 }}>
               <Stack spacing={2.5}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="caption" color="text.secondary">
                   Talaba ID: {selectedSubmission?.student_code} · Yuborilgan: {selectedSubmission?.submitted_at ? new Date(selectedSubmission.submitted_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" }) : "—"}
                 </Typography>
-                <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography fontWeight={700}>O‘quvchi izohi</Typography>
+
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: "14px" }}>
+                  <Typography variant="subtitle2" color="text.secondary">O‘quvchi izohi:</Typography>
                   <Typography sx={{ mt: 0.5 }}>{selectedSubmission?.comment || "Izoh qoldirilmagan."}</Typography>
                 </Paper>
+
                 <Box>
-                  <Typography fontWeight={700} sx={{ mb: 1 }}>Yuklangan fayllar</Typography>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Yuklangan fayllar:</Typography>
                   {selectedSubmission?.files?.length ? selectedSubmission.files.map((f: any) => (
-                    <MuiButton key={f.id} variant="outlined" sx={{ mr: 1, mb: 1 }} onClick={() => download(f)}>
+                    <MuiButton key={f.id} variant="outlined" size="small" sx={{ mr: 1, mb: 1 }} onClick={() => download(f)}>
                       {f.name}
                     </MuiButton>
-                  )) : <Typography color="text.secondary">Fayl yuklanmagan.</Typography>}
+                  )) : <Typography variant="caption" color="text.secondary">Fayl yo‘q</Typography>}
                 </Box>
 
                 <Divider />
 
-                <Paper sx={{ p: 2, bgcolor: "#f8faf9", border: "1px solid #dbeae2" }}>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary.main" sx={{ mb: 1.5 }}>
-                    Topshiriqni baholash
+                <Paper sx={{ p: 2.5, bgcolor: "#f8fafc", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+                  <Typography variant="subtitle1" fontWeight={800} color="primary.main" sx={{ mb: 2 }}>
+                    Baho va Taqriz
                   </Typography>
                   <Stack spacing={2}>
                     <TextField
@@ -902,23 +1513,22 @@ function Admin() {
                       label={`Ball (0 dan ${selectedSubmission?.max_score || 100} gacha)`}
                       value={scoreInput}
                       onChange={e => setScoreInput(e.target.value)}
-                      placeholder="Masalan: 95"
                     />
                     <TextField
                       multiline
                       minRows={3}
-                      label="O‘qituvchi fikri / Taqriz (Feedback)"
+                      label="O‘qituvchi taqrizi (Feedback)"
+                      placeholder="Talabaning ishi bo‘yicha konstruktiv fikr-mulohazangiz..."
                       value={feedbackInput}
                       onChange={e => setFeedbackInput(e.target.value)}
-                      placeholder="Vazifa bo‘yicha izoh yoki tavsiyalar yozing..."
                     />
                   </Stack>
                 </Paper>
               </Stack>
             </DialogContent>
-            <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
+            <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
               <MuiButton color="inherit" onClick={() => setSelectedSubmission(null)}>Yopish</MuiButton>
-              <MuiButton onClick={saveGrade} startIcon={<EmojiEvents />}>Bahoni saqlash</MuiButton>
+              <MuiButton onClick={saveGrade} startIcon={<Trophy size={16} />}>Bahoni saqlash</MuiButton>
             </DialogActions>
           </Dialog>
         </>
