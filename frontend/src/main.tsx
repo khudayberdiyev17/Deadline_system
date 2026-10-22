@@ -16,7 +16,8 @@ import confetti from "canvas-confetti";
 import {
   GraduationCap, Trophy, Award, Clock, CheckCircle2, AlertCircle, FileText,
   UploadCloud, Send, LogOut, ArrowLeft, Plus, Sparkles, BookOpen, Users,
-  School, Calendar, Eye, Trash2, Megaphone, Check, Lock, ChevronRight
+  School, Calendar, Eye, EyeOff, Trash2, Megaphone, Check, Lock, ChevronRight,
+  X
 } from "lucide-react";
 import "./style.css";
 
@@ -97,7 +98,7 @@ const theme = createTheme({
   }
 });
 
-type User = { role: string; full_name: string; student_id?: string; class_name?: string };
+type User = { role: string; full_name: string; student_id?: string; class_name?: string; must_change_password?: boolean };
 
 function fireConfetti() {
   confetti({
@@ -398,26 +399,77 @@ function Login({ onLogin }: { onLogin: (u: User) => void }) {
   );
 }
 
+function ChangePassword({ user, onChanged }: { user: User; onChanged: (user: User) => void }) {
+  const [password, setPassword] = useState(""), [confirm, setConfirm] = useState(""), [message, setMessage] = useState(""), [loading, setLoading] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) return setMessage("Yangi parol kamida 8 ta belgidan iborat bo‘lsin");
+    if (password !== confirm) return setMessage("Parollar bir xil emas");
+    setLoading(true);
+    try {
+      const result = await api.post("/auth/change-password", { new_password: password });
+      onChanged(result.data.user);
+    } catch (e: any) {
+      setMessage(e.response?.data?.detail || "Parolni yangilab bo‘lmadi");
+    } finally { setLoading(false); }
+  };
+  return <Box className="auth-background"><Paper className="auth-card" elevation={0}>
+    <Avatar sx={{ bgcolor: "warning.main", width: 48, height: 48, mb: 2 }}><Lock size={23} color="#ffffff" /></Avatar>
+    <Typography variant="h5" fontWeight={800}>Parolni yangilang</Typography>
+    <Typography color="text.secondary" sx={{ mt: 1 }}>Xavfsizlik uchun administrator bergan vaqtinchalik parolni almashtiring.</Typography>
+    <Box component="form" onSubmit={submit} sx={{ display: "grid", gap: 2, mt: 3 }}>
+      <TextField required fullWidth label="Yangi parol" type="password" helperText="Kamida 8 ta belgi" value={password} onChange={e => setPassword(e.target.value)} />
+      <TextField required fullWidth label="Yangi parolni tasdiqlang" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} />
+      {message && <Alert severity="error" sx={{ borderRadius: "12px" }}>{message}</Alert>}
+      <MuiButton type="submit" size="large" disabled={loading}>{loading ? <CircularProgress size={24} color="inherit" /> : "Parolni saqlash"}</MuiButton>
+    </Box>
+  </Paper></Box>;
+}
+
 function Register() {
   const [cs, setCs] = useState<any[]>([]),
     [f, setF] = useState<any>({ full_name: "", class_id: "", password: "", confirm: "" }),
-    [msg, setMsg] = useState(""), [ok, setOk] = useState(false), [loading, setLoading] = useState(false);
+    [msg, setMsg] = useState(""), [ok, setOk] = useState(false), [loading, setLoading] = useState(false),
+    [studentIdDialogOpen, setStudentIdDialogOpen] = useState(false), [studentId, setStudentId] = useState("");
   const nav = useNavigate();
 
   useEffect(() => {
-    api.get("/classes/public").then(r => setCs(r.data));
+    const loadClasses = async () => {
+      try {
+        const r = await api.get("/classes/public");
+        setCs(r.data || []);
+      } catch (error) {
+        console.error("Failed to load classes for registration:", error);
+        setCs([]);
+        setMsg("Kurslar yuklanmadi. Backend ishlayaptimi? Iltimos, serverni tekshiring.");
+        setOk(false);
+      }
+    };
+
+    loadClasses();
   }, []);
+
+  const closeStudentIdDialog = () => {
+    setStudentIdDialogOpen(false);
+    setStudentId("");
+    nav("/login");
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (f.password !== f.confirm) return setMsg("Parollar bir xil emas");
+    const fullName = f.full_name.trim();
+    if (fullName.length < 3) { setOk(false); return setMsg("F.I.Sh. kamida 3 ta belgidan iborat bo‘lsin"); }
+    if (!f.class_id) { setOk(false); return setMsg("Ro‘yxatdan o‘tish uchun sinfni tanlang"); }
+    if (f.password.length < 8) { setOk(false); return setMsg("Parol kamida 8 ta belgidan iborat bo‘lsin"); }
+    if (f.password !== f.confirm) { setOk(false); return setMsg("Parollar bir xil emas"); }
     setLoading(true);
     try {
-      const r = await api.post("/auth/register", f);
+      const r = await api.post("/auth/register", { full_name: fullName, class_id: f.class_id, password: f.password });
       setOk(true);
-      setMsg("Sizning maxsus ID raqamingiz: " + r.data.student_id + ". Uni saqlab oling!");
+      setStudentId(r.data.student_id);
+      setStudentIdDialogOpen(true);
+      setMsg("");
       fireConfetti();
-      setTimeout(() => nav("/login"), 3500);
     } catch (e: any) {
       setOk(false);
       setMsg(e.response?.data?.detail || "Ro‘yxatdan o‘tish amalga oshmadi");
@@ -494,6 +546,41 @@ function Register() {
           </MuiButton>
         </Paper>
       </motion.div>
+
+      <Dialog
+        open={studentIdDialogOpen}
+        onClose={(event, reason) => {
+          if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+          closeStudentIdDialog();
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pr: 1 }}>
+          <Typography variant="h6" fontWeight={800}>Ro‘yhatdan o‘tdingiz</Typography>
+          <IconButton aria-label="close" onClick={closeStudentIdDialog} sx={{ color: "text.secondary" }}>
+            <X size={20} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <Stack spacing={2.5} alignItems="center" textAlign="center">
+            <Avatar sx={{ bgcolor: "success.main", width: 64, height: 64 }}>
+              <Check size={30} color="#ffffff" />
+            </Avatar>
+            <Box>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                Sizning maxsus ID raqamingiz:
+              </Typography>
+              <Typography variant="h4" fontWeight={900} color="primary.main" sx={{ letterSpacing: 0.5 }}>
+                {studentId}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              IDni saqlab oling. Faqat X tugmasini bosib yakunlang.
+            </Typography>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
@@ -1160,6 +1247,8 @@ function Admin() {
   const [selectedClass, setSelectedClass] = useState<any>(null),
     [selectedAssignment, setSelectedAssignment] = useState<any>(null),
     [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [resettingStudentId, setResettingStudentId] = useState<string | null>(null);
+  const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
 
   const [scoreInput, setScoreInput] = useState<number | string>(""),
     [feedbackInput, setFeedbackInput] = useState("");
@@ -1284,6 +1373,30 @@ function Admin() {
       overview.refetch(); cs.refetch(); stats.refetch();
       showToast("Deadline o‘chirildi", "info");
     } catch (e: any) { showToast(e.response?.data?.detail || "O‘chirilmadi", "error"); }
+  };
+
+  const resetStudentPassword = async (student: any) => {
+    if (resettingStudentId || !window.confirm(`${student.full_name} uchun parol nis@123456 holatiga qaytarilsinmi?`)) return;
+    setResettingStudentId(student.id);
+    try {
+      await api.post(`/admin/students/${student.id}/reset-password`);
+      students.refetch();
+      showToast(`${student.full_name} uchun vaqtinchalik parol belgilandi`, "success");
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || "Parolni reset qilib bo‘lmadi", "error");
+    } finally { setResettingStudentId(null); }
+  };
+
+  const deleteStudent = async (student: any) => {
+    if (deletingStudentId || !window.confirm(`${student.full_name} (${student.student_id}) va unga tegishli topshirishlar o‘chirilsinmi? Bu amalni qaytarib bo‘lmaydi.`)) return;
+    setDeletingStudentId(student.id);
+    try {
+      await api.delete(`/admin/students/${student.id}`);
+      students.refetch(); cs.refetch(); stats.refetch();
+      showToast(`${student.full_name} o‘chirildi`, "info");
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || "O‘quvchini o‘chirib bo‘lmadi", "error");
+    } finally { setDeletingStudentId(null); }
   };
 
   // Results Publishing Toggle with Animation & Toast
@@ -1540,6 +1653,33 @@ function Admin() {
                 </Card>
               </Grid>
             ))}
+          </Grid>
+
+          <Typography variant="h5" fontWeight={800} sx={{ mt: 5, mb: 2.5 }}>Foydalanuvchilar boshqaruvi</Typography>
+          <Typography color="text.secondary" sx={{ mb: 2.5 }}>O‘quvchilar sinflar bo‘yicha guruhlangan. Resetdan keyin ular yangi parol o‘rnatishi shart.</Typography>
+          <Grid container spacing={2.5}>
+            {cs.data?.map((classroom: any) => {
+              const classStudents = students.data?.filter((student: any) => student.class_id === classroom.id) || [];
+              return <Grid size={{ xs: 12, md: 6 }} key={classroom.id}>
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: "18px", height: "100%" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={1} alignItems="center"><Avatar sx={{ bgcolor: "#e0e7ff", color: "primary.main" }}><School size={19} /></Avatar><Box><Typography fontWeight={800}>{classroom.name}</Typography><Typography variant="caption" color="text.secondary">{classStudents.length} ta o‘quvchi</Typography></Box></Stack>
+                    <Chip label="Sinf" size="small" variant="outlined" />
+                  </Stack>
+                  <Stack spacing={1.2}>
+                    {classStudents.length ? classStudents.map((student: any) => <Paper key={student.id} variant="outlined" sx={{ p: 1.25, borderRadius: "12px" }}>
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems={{ sm: "center" }}>
+                        <Box><Typography fontWeight={700}>{student.full_name}</Typography><Typography variant="caption" color="text.secondary">{student.student_id} {student.must_change_password ? "· Parol almashtirilishi kutilmoqda" : ""}</Typography></Box>
+                        <Stack direction="row" spacing={1}>
+                          <MuiButton size="small" color="warning" variant="outlined" startIcon={resettingStudentId === student.id ? <CircularProgress size={14} /> : <Lock size={15} />} disabled={resettingStudentId === student.id || deletingStudentId === student.id} onClick={() => resetStudentPassword(student)}>Parolni reset qilish</MuiButton>
+                          <Tooltip title="O‘quvchini o‘chirish"><span><IconButton color="error" size="small" disabled={deletingStudentId === student.id || resettingStudentId === student.id} onClick={() => deleteStudent(student)}>{deletingStudentId === student.id ? <CircularProgress size={18} color="inherit" /> : <Trash2 size={18} />}</IconButton></span></Tooltip>
+                        </Stack>
+                      </Stack>
+                    </Paper>) : <Typography variant="body2" color="text.secondary">Bu sinfda o‘quvchi yo‘q.</Typography>}
+                  </Stack>
+                </Paper>
+              </Grid>;
+            })}
           </Grid>
 
           {/* Class Overview Modal */}
@@ -1803,6 +1943,7 @@ function App() {
 
   if (pathname === "/register") return <Register />;
   if (!user) return <Login onLogin={setUser} />;
+  if (user.must_change_password) return <ChangePassword user={user} onChanged={setUser} />;
   return user.role === "admin" ? <Admin /> : <Student user={user} />;
 }
 

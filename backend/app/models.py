@@ -21,6 +21,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(15), default="student")
     class_id: Mapped[uuid.UUID|None] = mapped_column(Uuid, ForeignKey("classes.id"), nullable=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     classroom = relationship("ClassRoom")
 class StudentSequence(Base):

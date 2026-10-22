@@ -51,6 +51,68 @@ def test_registered_student_is_created():
     assert u is not None and re.fullmatch(r"nis@\d{3}", u.student_id)
     s.close()
 
+def test_admin_reset_requires_student_password_change():
+    client = TestClient(app)
+    s = TestingSessionLocal()
+    admin = User(full_name="Reset Admin", username="reset_admin", password_hash=PasswordHasher().hash("adminpass123"), role="admin")
+    student = s.query(User).filter_by(role="student").first()
+    s.add(admin)
+    s.commit()
+    admin_id, student_id, student_code = str(admin.id), str(student.id), student.student_id
+    s.close()
+
+    admin_login = client.post("/api/v1/auth/login", json={"identity": "reset_admin", "password": "adminpass123"})
+    reset = client.post(f"/api/v1/admin/students/{student_id}/reset-password", headers={"Authorization": f"Bearer {admin_login.json()['access_token']}"})
+    assert reset.status_code == 200 and reset.json()["student"]["must_change_password"] is True
+
+    student_login = client.post("/api/v1/auth/login", json={"identity": student_code, "password": "nis@123456"})
+    assert student_login.status_code == 200 and student_login.json()["user"]["must_change_password"] is True
+    changed = client.post("/api/v1/auth/change-password", json={"new_password": "newsecret123"}, headers={"Authorization": f"Bearer {student_login.json()['access_token']}"})
+    assert changed.status_code == 200 and changed.json()["user"]["must_change_password"] is False
+
+def test_admin_can_delete_a_test_student():
+    client = TestClient(app)
+    s = TestingSessionLocal()
+    admin = User(full_name="Delete Admin", username="delete_admin", password_hash=PasswordHasher().hash("adminpass123"), role="admin")
+    student = User(full_name="Test Student", student_id="nis@998", password_hash=PasswordHasher().hash("studentpass"), role="student")
+    s.add_all([admin, student])
+    s.commit()
+    student_id = str(student.id)
+    s.close()
+
+    login = client.post("/api/v1/auth/login", json={"identity": "delete_admin", "password": "adminpass123"})
+    deleted = client.delete(f"/api/v1/admin/students/{student_id}", headers={"Authorization": f"Bearer {login.json()['access_token']}"})
+    assert deleted.status_code == 200
+    s = TestingSessionLocal()
+    assert s.get(User, uuid.UUID(student_id)) is None
+    s.close()
+
+def test_class_assignment_is_visible_to_every_active_student_in_class():
+    client = TestClient(app)
+    s = TestingSessionLocal()
+    classroom = ClassRoom(name="10-B")
+    admin = User(full_name="Class Admin", username="class_admin", password_hash=PasswordHasher().hash("adminpass123"), role="admin")
+    subject = Subject(name="Informatika")
+    s.add_all([classroom, admin, subject])
+    s.flush()
+    first = User(full_name="First Student", student_id="nis@997", password_hash=PasswordHasher().hash("studentpass"), role="student", class_id=classroom.id)
+    second = User(full_name="Second Student", student_id="nis@996", password_hash=PasswordHasher().hash("studentpass"), role="student", class_id=classroom.id)
+    s.add_all([first, second])
+    s.commit()
+    class_id, subject_id = str(classroom.id), str(subject.id)
+    s.close()
+
+    admin_login = client.post("/api/v1/auth/login", json={"identity": "class_admin", "password": "adminpass123"})
+    deadline = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()
+    created = client.post("/api/v1/admin/assignments", headers={"Authorization": f"Bearer {admin_login.json()['access_token']}"}, json={"subject_id": subject_id, "title": "Sinf vazifasi", "description": "Hamma uchun", "deadline": deadline, "target_type": "class", "class_id": class_id, "max_score": 100})
+    assert created.status_code == 201 and created.json()["recipients"] == 2
+
+    for student_code in ("nis@997", "nis@996"):
+        login = client.post("/api/v1/auth/login", json={"identity": student_code, "password": "studentpass"})
+        assignments = client.get("/api/v1/student/assignments", headers={"Authorization": f"Bearer {login.json()['access_token']}"})
+        assert assignments.status_code == 200
+        assert any(item["title"] == "Sinf vazifasi" for item in assignments.json())
+
 def test_grading_and_results_dashboard():
     client = TestClient(app)
     s = TestingSessionLocal()
