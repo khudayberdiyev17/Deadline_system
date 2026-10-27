@@ -13,11 +13,20 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column("assignments", sa.Column("max_score", sa.Integer(), nullable=False, server_default="100"))
-    op.add_column("assignments", sa.Column("results_published", sa.Boolean(), nullable=False, server_default="false"))
-    op.add_column("submissions", sa.Column("score", sa.Integer(), nullable=True))
-    op.add_column("submissions", sa.Column("feedback", sa.Text(), nullable=True))
-    op.add_column("submissions", sa.Column("graded_at", sa.DateTime(timezone=True), nullable=True))
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    a_cols = [c["name"] for c in insp.get_columns("assignments")]
+    s_cols = [c["name"] for c in insp.get_columns("submissions")]
+    if "max_score" not in a_cols:
+        op.add_column("assignments", sa.Column("max_score", sa.Integer(), nullable=False, server_default="100"))
+    if "results_published" not in a_cols:
+        op.add_column("assignments", sa.Column("results_published", sa.Boolean(), nullable=False, server_default="false"))
+    if "score" not in s_cols:
+        op.add_column("submissions", sa.Column("score", sa.Integer(), nullable=True))
+    if "feedback" not in s_cols:
+        op.add_column("submissions", sa.Column("feedback", sa.Text(), nullable=True))
+    if "graded_at" not in s_cols:
+        op.add_column("submissions", sa.Column("graded_at", sa.DateTime(timezone=True), nullable=True))
 
 def downgrade():
     op.drop_column("submissions", "graded_at")

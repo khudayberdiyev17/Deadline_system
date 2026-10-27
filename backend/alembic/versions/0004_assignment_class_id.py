@@ -13,8 +13,11 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column("assignments", sa.Column("class_id", sa.Uuid(), sa.ForeignKey("classes.id"), nullable=True))
-    # Populate existing assignments with class_id from their student recipients
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    a_cols = [c["name"] for c in insp.get_columns("assignments")]
+    if "class_id" not in a_cols:
+        op.add_column("assignments", sa.Column("class_id", sa.Uuid(), sa.ForeignKey("classes.id"), nullable=True))
     op.execute("""
         UPDATE assignments 
         SET class_id = (

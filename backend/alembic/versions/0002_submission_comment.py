@@ -8,7 +8,11 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column("submissions", sa.Column("comment", sa.Text(), nullable=True))
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    cols = [c["name"] for c in insp.get_columns("submissions")]
+    if "comment" not in cols:
+        op.add_column("submissions", sa.Column("comment", sa.Text(), nullable=True))
 
 def downgrade():
     op.drop_column("submissions", "comment")

@@ -13,7 +13,11 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column("users", sa.Column("must_change_password", sa.Boolean(), nullable=False, server_default="false"))
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    u_cols = [c["name"] for c in insp.get_columns("users")]
+    if "must_change_password" not in u_cols:
+        op.add_column("users", sa.Column("must_change_password", sa.Boolean(), nullable=False, server_default="false"))
 
 def downgrade():
     op.drop_column("users", "must_change_password")
