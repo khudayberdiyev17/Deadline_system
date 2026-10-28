@@ -156,3 +156,33 @@ def test_grading_and_results_dashboard():
     assert len(results) >= 1
     assert results[0]["title"] == "Algebra 1"
     assert results[0]["students"][0]["score"] == 95
+
+
+def test_assignment_created_even_if_class_has_no_students():
+    client = TestClient(app)
+    s = TestingSessionLocal()
+    empty_class = ClassRoom(name="11-C (Bo'sh)")
+    admin = User(full_name="Empty Class Admin", username="empty_admin", password_hash=PasswordHasher().hash("adminpass123"), role="admin")
+    subject = Subject(name="Biologiya")
+    s.add_all([empty_class, admin, subject])
+    s.commit()
+    class_id, subject_id = str(empty_class.id), str(subject.id)
+    s.close()
+
+    admin_login = client.post("/api/v1/auth/login", json={"identity": "empty_admin", "password": "adminpass123"})
+    deadline = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
+    # Sinfda o'quvchi bo'lmasa ham muvaffaqiyatli yaratilishi kerak:
+    created = client.post("/api/v1/admin/assignments", headers={"Authorization": f"Bearer {admin_login.json()['access_token']}"}, json={"subject_id": subject_id, "title": "Botanika tajriba", "description": "Biologiya bo'yicha", "deadline": deadline, "target_type": "class", "class_id": class_id, "max_score": 100})
+    assert created.status_code == 201
+    assert created.json()["recipients"] == 0
+
+    # Keyinchalik yangi o'quvchi ro'yxatdan o'tganda shu topshiriq unga ko'rinishi kerak:
+    reg = client.post("/api/v1/auth/register", json={"full_name": "Yangi O'quvchi", "class_id": class_id, "password": "studentpass123"})
+    assert reg.status_code == 201
+    st_code = reg.json()["student_id"]
+
+    st_login = client.post("/api/v1/auth/login", json={"identity": st_code, "password": "studentpass123"})
+    assert st_login.status_code == 200
+    st_tasks = client.get("/api/v1/student/assignments", headers={"Authorization": f"Bearer {st_login.json()['access_token']}"})
+    assert st_tasks.status_code == 200
+    assert any(t["title"] == "Botanika tajriba" for t in st_tasks.json())
