@@ -8,7 +8,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, Req
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from .db import db
@@ -233,7 +233,7 @@ def student_assignments(user=Depends(current), session: Session = Depends(db)):
             "description": r.assignment.description,
             "deadline": r.assignment.deadline,
             "max_score": r.assignment.max_score,
-            "results_published": r.assignment.results_published,
+            "results_published": r.assignment.results_published or deadline_passed(r.assignment.deadline),
             "status": st,
             "score": sub.score if sub else None,
             "feedback": sub.feedback if sub else None,
@@ -263,7 +263,7 @@ def assignment_detail(assignment_id: uuid.UUID, user=Depends(current), session: 
         "notes": assignment.notes,
         "deadline": assignment.deadline,
         "max_score": assignment.max_score,
-        "results_published": assignment.results_published,
+        "results_published": assignment.results_published or deadline_passed(assignment.deadline),
         "locked": deadline_passed(assignment.deadline),
         "submitted_at": submission.submitted_at if submission else None,
         "comment": submission.comment if submission else None,
@@ -427,7 +427,7 @@ def class_overview(id: uuid.UUID, user=Depends(admin), session: Session = Depend
             "title": ca.title,
             "deadline": ca.deadline,
             "max_score": ca.max_score,
-            "results_published": ca.results_published,
+            "results_published": ca.results_published or (ca.deadline <= now_utc),
             "recipient_count": 0,
             "submitted_count": 0
         }
@@ -439,7 +439,7 @@ def class_overview(id: uuid.UUID, user=Depends(admin), session: Session = Depend
             "title": assignment.title,
             "deadline": assignment.deadline,
             "max_score": assignment.max_score,
-            "results_published": assignment.results_published,
+            "results_published": assignment.results_published or (assignment.deadline <= now_utc),
             "recipient_count": 0,
             "submitted_count": 0
         })
@@ -661,24 +661,28 @@ def admin_assignments(user=Depends(admin), session: Session = Depends(db)):
         subs = session.scalars(select(Submission).where(Submission.recipient_id.in_(rec_ids))).all() if rec_ids else []
         graded_count = sum(1 for s in subs if s.score is not None)
         submitted_count = len(subs)
+        assigned_class = a.classroom.name if a.classroom else (
+            recs[0].student.classroom.name if recs and recs[0].student and recs[0].student.classroom else None
+        )
         target_name = a.classroom.name if a.classroom else (recs[0].student.full_name if recs else "Alohida")
+        is_expired = a.deadline <= now_utc
         out.append({
             "id": str(a.id),
             "subject": a.subject.name,
             "subject_id": str(a.subject_id),
             "class_id": str(a.class_id) if a.class_id else None,
-            "class_name": a.classroom.name if a.classroom else None,
+            "class_name": assigned_class,
             "target_name": target_name,
             "title": a.title,
             "description": a.description,
             "notes": a.notes,
             "deadline": a.deadline,
             "max_score": a.max_score,
-            "results_published": a.results_published,
+            "results_published": a.results_published or is_expired,
             "recipient_count": len(recs),
             "submitted_count": submitted_count,
             "graded_count": graded_count,
-            "is_expired": a.deadline <= now_utc
+            "is_expired": is_expired
         })
     return out
 
@@ -707,7 +711,10 @@ def toggle_publish(assignment_id: uuid.UUID, user=Depends(admin), session: Sessi
 
 @app.get("/api/v1/dashboard/results")
 def dashboard_results(class_id: uuid.UUID | None = None, session: Session = Depends(db)):
-    q = select(Assignment).where(Assignment.results_published == True).order_by(Assignment.created_at.desc())
+    now_utc = datetime.now(timezone.utc)
+    q = select(Assignment).where(
+        or_(Assignment.results_published == True, Assignment.deadline <= now_utc)
+    ).order_by(Assignment.created_at.desc())
     assignments = session.scalars(q).all()
     results = []
     for a in assignments:

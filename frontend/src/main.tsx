@@ -2037,14 +2037,42 @@ function Admin() {
                           }}
                         >
                           <CardContent sx={{ p: 2 }}>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                              <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                            {/* Sinf va Fan ustida */}
+                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                              <Box>
+                                {a.class_name && (
+                                  <Box
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.6,
+                                      bgcolor: "#f3e8ff",
+                                      color: "#7e22ce",
+                                      px: 1.2,
+                                      py: 0.35,
+                                      borderRadius: "8px",
+                                      mb: 0.8,
+                                      fontSize: "0.78rem",
+                                      fontWeight: 800,
+                                      border: "1px solid #e9d5ff",
+                                      letterSpacing: "0.2px"
+                                    }}
+                                  >
+                                    <School size={13} />
+                                    {a.class_name} sinfi
+                                  </Box>
+                                )}
+                                <div>
+                                  <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                                </div>
+                              </Box>
                               <Chip
                                 icon={<Clock size={13} />}
                                 label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
                                 size="small"
                                 color={isExp ? "error" : "warning"}
                                 variant="outlined"
+                                sx={{ fontWeight: 700 }}
                               />
                             </Stack>
                             <Typography variant="subtitle1" fontWeight={800} sx={{ mt: 1 }}>{a.title}</Typography>
@@ -2218,13 +2246,41 @@ function Admin() {
                           }}
                         >
                           <CardContent sx={{ p: 2.5 }}>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                              <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                            {/* Sinf va Fan ustida */}
+                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                              <Box>
+                                {a.class_name && (
+                                  <Box
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.6,
+                                      bgcolor: "#f3e8ff",
+                                      color: "#7e22ce",
+                                      px: 1.2,
+                                      py: 0.35,
+                                      borderRadius: "8px",
+                                      mb: 0.8,
+                                      fontSize: "0.78rem",
+                                      fontWeight: 800,
+                                      border: "1px solid #e9d5ff",
+                                      letterSpacing: "0.2px"
+                                    }}
+                                  >
+                                    <School size={13} />
+                                    {a.class_name} sinfi
+                                  </Box>
+                                )}
+                                <div>
+                                  <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                                </div>
+                              </Box>
                               <Chip
                                 icon={<Clock size={13} />}
                                 label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
                                 size="small"
                                 color={isExp ? "error" : "warning"}
+                                sx={{ fontWeight: 700 }}
                               />
                             </Stack>
 
@@ -2514,6 +2570,19 @@ function Admin() {
         <DialogTitle>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.5}>
             <Box>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+                {selectedAssignment?.class_name && (
+                  <Chip
+                    icon={<School size={13} />}
+                    label={`${selectedAssignment.class_name} sinfi`}
+                    size="small"
+                    sx={{ bgcolor: "#f3e8ff", color: "#7e22ce", fontWeight: 800, border: "1px solid #e9d5ff" }}
+                  />
+                )}
+                {selectedAssignment?.subject && (
+                  <Chip label={selectedAssignment.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                )}
+              </Stack>
               <Typography variant="h5" fontWeight={800}>{selectedAssignment?.title}</Typography>
               <Typography variant="caption" color="text.secondary">
                 Maksimal ball: {selectedAssignment?.max_score || 100} · Deadline: {selectedAssignment?.deadline ? new Date(selectedAssignment.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false }) : ""}
