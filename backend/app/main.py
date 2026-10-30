@@ -634,6 +634,54 @@ def recipients(assignment_id: uuid.UUID, class_id: uuid.UUID | None = None, user
         })
     return out
 
+@app.delete("/api/v1/admin/submissions/{submission_id}")
+def delete_submission(submission_id: uuid.UUID, user=Depends(admin), session: Session = Depends(db)):
+    sub = session.get(Submission, submission_id)
+    if not sub:
+        err(404, "Topshiriq topilmadi")
+    recipient_id = sub.recipient_id
+    files = session.scalars(select(StoredFile).where(StoredFile.recipient_id == recipient_id)).all()
+    for file in files:
+        path = Path(settings.upload_dir) / file.storage_key
+        if path.exists():
+            path.unlink()
+        session.delete(file)
+    session.delete(sub)
+    session.commit()
+    return {"message": "O‘quvchining topshirig‘i va fayllari o‘chirildi. Qayta topshirish mumkin"}
+
+@app.get("/api/v1/admin/assignments")
+def admin_assignments(user=Depends(admin), session: Session = Depends(db)):
+    now_utc = datetime.now(timezone.utc)
+    assigns = session.scalars(select(Assignment).order_by(Assignment.created_at.desc())).all()
+    out = []
+    for a in assigns:
+        recs = session.scalars(select(Recipient).where(Recipient.assignment_id == a.id)).all()
+        rec_ids = [r.id for r in recs]
+        subs = session.scalars(select(Submission).where(Submission.recipient_id.in_(rec_ids))).all() if rec_ids else []
+        graded_count = sum(1 for s in subs if s.score is not None)
+        submitted_count = len(subs)
+        target_name = a.classroom.name if a.classroom else (recs[0].student.full_name if recs else "Alohida")
+        out.append({
+            "id": str(a.id),
+            "subject": a.subject.name,
+            "subject_id": str(a.subject_id),
+            "class_id": str(a.class_id) if a.class_id else None,
+            "class_name": a.classroom.name if a.classroom else None,
+            "target_name": target_name,
+            "title": a.title,
+            "description": a.description,
+            "notes": a.notes,
+            "deadline": a.deadline,
+            "max_score": a.max_score,
+            "results_published": a.results_published,
+            "recipient_count": len(recs),
+            "submitted_count": submitted_count,
+            "graded_count": graded_count,
+            "is_expired": a.deadline <= now_utc
+        })
+    return out
+
 @app.post("/api/v1/admin/submissions/{submission_id}/grade")
 def grade_submission(submission_id: uuid.UUID, data: GradeIn, user=Depends(admin), session: Session = Depends(db)):
     sub = session.get(Submission, submission_id)

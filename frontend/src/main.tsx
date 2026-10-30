@@ -9,7 +9,7 @@ import {
   Stack, Alert, MenuItem, Grid2 as Grid, Divider, Avatar, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, LinearProgress, IconButton, Tooltip,
-  Snackbar, Tabs, Tab
+  Snackbar, Tabs, Tab, List, ListItem, ListItemButton, ListItemIcon, ListItemText
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -17,7 +17,8 @@ import {
   GraduationCap, Trophy, Award, Clock, CheckCircle2, AlertCircle, FileText,
   UploadCloud, Send, LogOut, ArrowLeft, Plus, Sparkles, BookOpen, Users,
   School, Calendar, Eye, EyeOff, Trash2, Megaphone, Check, Lock, ChevronRight,
-  X, User as UserIcon, KeyRound, MessageSquare, ExternalLink, Download, Paperclip
+  X, User as UserIcon, KeyRound, MessageSquare, ExternalLink, Download, Paperclip,
+  RotateCcw, LayoutDashboard, ListTodo, UserCheck, ShieldAlert
 } from "lucide-react";
 import "./style.css";
 
@@ -429,8 +430,8 @@ function ProfileModal({
                 <Paper sx={{ p: 1.5, bgcolor: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
                   <Typography variant="caption" color="text.secondary">Telegram aloqa:</Typography>
                   <Typography variant="body1" fontWeight={700} sx={{ mt: 0.2 }}>
-                    <a href="https://t.me/cybertron_admin" target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <span>@cybertron_admin</span>
+                    <a href="https://t.me/cybersec_samandar" target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span>@cybersec_samandar</span>
                       <ExternalLink size={15} />
                     </a>
                   </Typography>
@@ -447,7 +448,7 @@ function ProfileModal({
 
             <MuiButton
               component="a"
-              href="https://t.me/cybertron_admin"
+              href="https://t.me/cybersec_samandar"
               target="_blank"
               rel="noopener noreferrer"
               variant="contained"
@@ -456,7 +457,7 @@ function ProfileModal({
               fullWidth
               sx={{ height: 44 }}
             >
-              Telegram orqali xabar yozish
+              Telegram orqali bog‘lanish (t.me/cybersec_samandar)
             </MuiButton>
           </Stack>
         )}
@@ -917,7 +918,7 @@ function DashboardView() {
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
               <Chip
                 icon={<Sparkles size={14} color="#fcd34d" />}
-                label="Jonli Reyting"
+                label="Fanlar Bo‘yicha Reyting"
                 size="small"
                 sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "#fff", fontWeight: 700 }}
               />
@@ -926,7 +927,7 @@ function DashboardView() {
               Natijalar & Shon-sharaf Doskasi
             </Typography>
             <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)", mt: 0.8 }}>
-              O‘qituvchilar tomonidan baholangan va e‘lon qilingan barcha topshiriqlar bo‘yicha talabalar reytingi.
+              Fanlar bo‘yicha eng yuqori ball to‘plab borayotgan o‘quvchilar ro‘yxati va yetakchilar shohsupasi.
             </Typography>
           </Box>
           <Avatar
@@ -953,7 +954,7 @@ function DashboardView() {
           <Trophy size={50} color="#d2a84a" style={{ margin: "0 auto 16px" }} />
           <Typography variant="h6" fontWeight={700}>Hozircha e‘lon qilingan natijalar yo‘q</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 450, mx: "auto" }}>
-            O‘qituvchi topshiriqlarni tekshirib, natijalarni e‘lon qilgach, bu yerda g‘oliblar shohsupasi va to‘liq jadval paydo bo‘ladi.
+            O‘qituvchi topshiriqlarni tekshirib, natijalarni e‘lon qilgach, bu yerda g‘oliblar shohsupasi va fanlar bo‘yicha yuqori ball to‘plaganlar jadvali paydo bo‘ladi.
           </Typography>
         </Paper>
       )}
@@ -968,6 +969,7 @@ function DashboardView() {
             transition={{ duration: 0.35 }}
           >
             <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: "24px", bgcolor: "#ffffff" }}>
+              {/* Header: Only subject and score info, no specific assignment task name */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"
@@ -977,11 +979,11 @@ function DashboardView() {
               >
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                    <Chip label={a.subject} color="primary" size="small" sx={{ fontWeight: 700 }} />
-                    <Chip label={`Maks: ${a.max_score} ball`} variant="outlined" size="small" />
+                    <Chip label="Fan" size="small" variant="outlined" />
+                    <Chip label={`Maksimal ball: ${a.max_score}`} color="primary" size="small" sx={{ fontWeight: 700 }} />
                   </Stack>
-                  <Typography variant="h5" fontWeight={800} sx={{ fontSize: { xs: "1.2rem", sm: "1.5rem" } }}>
-                    {a.title}
+                  <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ fontSize: { xs: "1.3rem", sm: "1.6rem" } }}>
+                    {a.subject}
                   </Typography>
                 </Box>
                 <Paper
@@ -1042,7 +1044,7 @@ function DashboardView() {
                 </Grid>
               )}
 
-              {/* Leaderboard Table (Mobile-Responsive Scrollable) */}
+              {/* Leaderboard Table (Without Taqriz column) */}
               <TableContainer sx={{ borderRadius: "16px", border: "1px solid #f1f5f9", overflowX: "auto" }}>
                 <Table size="small">
                   <TableHead sx={{ bgcolor: "#f8fafc" }}>
@@ -1051,8 +1053,7 @@ function DashboardView() {
                       <TableCell sx={{ fontWeight: 700 }}>O‘quvchi</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Sinfi</TableCell>
-                      <TableCell sx={{ fontWeight: 700, minWidth: 140 }}>Natija / Progress</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Taqriz</TableCell>
+                      <TableCell sx={{ fontWeight: 700, minWidth: 160 }}>Natija / Progress</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1093,13 +1094,6 @@ function DashboardView() {
                             ) : (
                               <Chip size="small" label="Topshirmagan" color="error" variant="outlined" />
                             )}
-                          </TableCell>
-                          <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
-                            {st.feedback ? (
-                              <Paper variant="outlined" sx={{ p: 0.8, bgcolor: "#f8fafc", borderRadius: "8px" }}>
-                                {st.feedback}
-                              </Paper>
-                            ) : "—"}
                           </TableCell>
                         </TableRow>
                       );
@@ -1336,7 +1330,7 @@ function Student({ user }: { user: User }) {
                       </Stack>
 
                       <Typography variant="h6" fontWeight={800} sx={{ mt: 1.5, fontSize: "1.1rem" }}>{a.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.8, minHeight: 40 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.8, minHeight: 40, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                         {a.description}
                       </Typography>
 
@@ -1394,10 +1388,13 @@ function Student({ user }: { user: User }) {
               ) : (
                 <Stack spacing={2.5}>
                   <Paper sx={{ p: 2.5, borderRadius: "16px", bgcolor: "#fff" }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Yo‘riqnoma:</Typography>
-                    <Typography variant="body1">{detail.data?.description}</Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.8, fontWeight: 700 }}>Yo‘riqnoma:</Typography>
+                    {/* Preserving enters, tabs, spaces from teacher input */}
+                    <Typography variant="body1" sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word", lineHeight: 1.6, fontFamily: "inherit" }}>
+                      {detail.data?.description}
+                    </Typography>
                     {detail.data?.notes && (
-                      <Alert severity="info" sx={{ mt: 2, borderRadius: "12px" }}>
+                      <Alert severity="info" sx={{ mt: 2, borderRadius: "12px", whiteSpace: "pre-wrap" }}>
                         {detail.data.notes}
                       </Alert>
                     )}
@@ -1422,7 +1419,7 @@ function Student({ user }: { user: User }) {
                             Sizning natijangiz: {detail.data.score} / {detail.data.max_score} ball
                           </Typography>
                           {detail.data.feedback && (
-                            <Typography variant="body2" sx={{ mt: 0.5, color: "#047857" }}>
+                            <Typography variant="body2" sx={{ mt: 0.5, color: "#047857", whiteSpace: "pre-wrap" }}>
                               <strong>O‘qituvchi taqrizi:</strong> {detail.data.feedback}
                             </Typography>
                           )}
@@ -1552,11 +1549,13 @@ function Student({ user }: { user: User }) {
 }
 
 function Admin() {
-  const [tab, setTab] = useState("main");
+  const [activeSection, setActiveSection] = useState<"overview" | "tasks" | "classes" | "subjects" | "students" | "results">("overview");
+
   const stats = useQuery({ queryKey: ["stats"], queryFn: () => api.get("/admin/stats").then(r => r.data) });
   const cs = useQuery({ queryKey: ["classes"], queryFn: () => api.get("/admin/classes").then(r => r.data) });
   const subs = useQuery({ queryKey: ["subjects"], queryFn: () => api.get("/admin/subjects").then(r => r.data) });
   const students = useQuery({ queryKey: ["students"], queryFn: () => api.get("/admin/students").then(r => r.data) });
+  const allAssignments = useQuery({ queryKey: ["admin-all-assignments"], queryFn: () => api.get("/admin/assignments").then(r => r.data) });
 
   const [selectedClass, setSelectedClass] = useState<any>(null),
     [selectedAssignment, setSelectedAssignment] = useState<any>(null),
@@ -1614,7 +1613,7 @@ function Admin() {
     });
 
   const set = (k: string, v: any) => setTask({ ...task, [k]: v }),
-    refresh = () => { stats.refetch(); cs.refetch(); subs.refetch(); students.refetch(); };
+    refresh = () => { stats.refetch(); cs.refetch(); subs.refetch(); students.refetch(); allAssignments.refetch(); };
 
   const handleTaskFilesAdd = (fileList: FileList | null) => {
     if (!fileList) return;
@@ -1632,7 +1631,7 @@ function Admin() {
     setTaskFileMsg("");
   };
 
-  // Class Creation with Button Animation & Toast
+  // Class Creation
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cname.trim() || classBtn.loading) return;
@@ -1651,7 +1650,7 @@ function Admin() {
     }
   };
 
-  // Subject Creation with Button Animation & Toast
+  // Subject Creation
   const createSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sname.trim() || subjBtn.loading) return;
@@ -1690,7 +1689,6 @@ function Admin() {
         student_id: task.target_type === "student" ? task.student_id : null
       });
 
-      // Upload files if any
       if (taskFiles.length > 0) {
         const formData = new FormData();
         taskFiles.forEach(f => formData.append("files", f));
@@ -1743,12 +1741,15 @@ function Admin() {
     } catch { showToast("Faylni yuklab bo‘lmadi", "error"); }
   };
 
-  const removeAssignment = async () => {
-    if (!selectedAssignment || !window.confirm("Bu deadline va barcha topshirishlar o‘chiriladi. Davom etasizmi?")) return;
+  const removeAssignment = async (assignId?: string) => {
+    const targetId = assignId || selectedAssignment?.id;
+    if (!targetId || !window.confirm("Bu deadline va unga bog‘liq barcha topshirishlar o‘chiriladi. Davom etasizmi?")) return;
     try {
-      await api.delete("/admin/assignments/" + selectedAssignment.id);
-      setSelectedSubmission(null); setSelectedAssignment(null);
-      overview.refetch(); cs.refetch(); stats.refetch();
+      await api.delete("/admin/assignments/" + targetId);
+      if (selectedAssignment?.id === targetId) {
+        setSelectedSubmission(null); setSelectedAssignment(null);
+      }
+      refresh();
       showToast("Deadline o‘chirildi", "info");
     } catch (e: any) { showToast(e.response?.data?.detail || "O‘chirilmadi", "error"); }
   };
@@ -1762,7 +1763,7 @@ function Admin() {
       fireConfetti();
       showToast(r.data.message, "success");
       setSelectedAssignment({ ...selectedAssignment, results_published: r.data.results_published });
-      overview.refetch();
+      refresh();
       setTimeout(() => setPubBtn({ loading: false, success: false }), 2000);
     } catch (e: any) {
       setPubBtn({ loading: false, success: false });
@@ -1788,7 +1789,7 @@ function Admin() {
       fireConfetti();
       showToast(`⭐ ${selectedSubmission.full_name}ning ishi baholandi (${scoreInput} ball)!`, "success");
       recipients.refetch();
-      overview.refetch();
+      refresh();
       setTimeout(() => {
         setSelectedSubmission(null);
         setGradeBtn({ loading: false, success: false });
@@ -1799,121 +1800,294 @@ function Admin() {
     }
   };
 
+  // Delete student's submission (allows resubmission)
+  const deleteStudentSubmission = async (r: any) => {
+    if (!r.submission_id) return;
+    if (!window.confirm(`${r.full_name}ning topshirgan ishi va fayllarini o‘chirmoqchimisiz? O‘quvchi topshiriqni qaytadan yuborishi mumkin bo‘ladi.`)) return;
+    try {
+      await api.delete(`/admin/submissions/${r.submission_id}`);
+      showToast("O‘quvchining topshirig‘i o‘chirildi. Qayta topshirishi mumkin", "success");
+      recipients.refetch();
+      refresh();
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || "Topshiriqni o‘chirishda xatolik", "error");
+    }
+  };
+
+  // Delete student account
+  const handleDeleteStudent = async (st: any) => {
+    if (!window.confirm(`Haqiqatan ham ${st.full_name} (${st.student_id}) o‘quvchisini tizimdan o‘chirmoqchimisiz? Uning barcha topshirgan fayllari va baholari ham o‘chiriladi.`)) return;
+    try {
+      await api.delete(`/admin/students/${st.id}`);
+      showToast(`${st.full_name} tizimdan muvaffaqiyatli o‘chirildi`, "success");
+      refresh();
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || "O‘quvchini o‘chirishda xatolik", "error");
+    }
+  };
+
+  // Reset student password
+  const handleResetPassword = async (st: any) => {
+    if (!window.confirm(`${st.full_name}ning parolini standart holatga (nis@123456) qaytarmoqchimisiz?`)) return;
+    try {
+      await api.post(`/admin/students/${st.id}/reset-password`);
+      showToast(`Parol nis@123456 ga qaytarildi`, "success");
+      refresh();
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || "Parolni qaytarishda xatolik", "error");
+    }
+  };
+
+  // Sort assignments: ending soonest first, then later, then expired
+  const sortedAssignments = [...(allAssignments.data || [])].sort((a: any, b: any) => {
+    const now = Date.now();
+    const aTime = new Date(a.deadline).getTime();
+    const bTime = new Date(b.deadline).getTime();
+    const aActive = aTime > now;
+    const bActive = bTime > now;
+
+    // Both active: ending soonest (smallest aTime) comes first
+    if (aActive && bActive) return aTime - bTime;
+    // Active comes before expired
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
+    // Both expired: most recently expired first
+    return bTime - aTime;
+  });
+
+  const sidebarItems = [
+    { id: "overview", label: "Boshqaruv & Statistika", icon: <LayoutDashboard size={19} /> },
+    { id: "tasks", label: "Deadlinelar & Vazifalar", count: allAssignments.data?.length, icon: <ListTodo size={19} /> },
+    { id: "classes", label: "Sinflar", count: cs.data?.length, icon: <School size={19} /> },
+    { id: "subjects", label: "Fanlar", count: subs.data?.length, icon: <BookOpen size={19} /> },
+    { id: "students", label: "O‘quvchilar", count: students.data?.length, icon: <Users size={19} /> },
+    { id: "results", label: "Natijalar Doskasi", icon: <Trophy size={19} /> }
+  ];
+
   const statCards = [
-    { key: "active_students", label: "Faol O‘quvchilar", icon: <Users size={24} />, color: "#4f46e5", bg: "#eef2ff" },
-    { key: "classes", label: "Sinflar Soni", icon: <School size={24} />, color: "#06b6d4", bg: "#ecfeff" },
-    { key: "assignments", label: "Vazifalar", icon: <FileText size={24} />, color: "#f59e0b", bg: "#fffbeb" },
-    { key: "submitted", label: "Topshirilgan", icon: <CheckCircle2 size={24} />, color: "#10b981", bg: "#ecfdf5" }
+    { key: "active_students", label: "Faol O‘quvchilar", val: stats.data?.active_students ?? "—", icon: <Users size={24} />, color: "#4f46e5", bg: "#eef2ff" },
+    { key: "classes", label: "Sinflar Soni", val: stats.data?.classes ?? "—", icon: <School size={24} />, color: "#06b6d4", bg: "#ecfeff" },
+    { key: "assignments", label: "Deadlinelar", val: stats.data?.assignments ?? "—", icon: <FileText size={24} />, color: "#f59e0b", bg: "#fffbeb" },
+    { key: "submitted", label: "Topshirilgan", val: stats.data?.submitted ?? "—", icon: <CheckCircle2 size={24} />, color: "#10b981", bg: "#ecfdf5" }
   ];
 
   return (
     <Shell
-      title="Boshqaruv Markazi"
-      subtitle="Sinflar, fanlar, topshiriqlar, fayllar, baholash va natijalar tizimi."
+      title="Admin Boshqaruv Markazi"
+      subtitle="Bo‘limlar orqali sinflar, fanlar, topshiriqlar, baholar va o‘quvchilarni boshqaring."
       onLogout={() => { localStorage.clear(); location.reload(); }}
-      tab={tab}
-      setTab={setTab}
       user={{ role: "admin", full_name: "Administrator" }}
     >
-      {tab === "dashboard" ? (
-        <DashboardView />
-      ) : (
-        <>
-          {/* Stat Cards */}
-          <Grid container spacing={2} sx={{ mb: 3.5 }}>
-            {statCards.map(s => (
-              <Grid size={{ xs: 6, md: 3 }} key={s.key}>
-                <Paper
-                  sx={{
-                    p: { xs: 2, sm: 2.5 },
-                    borderRadius: "20px",
-                    border: "1px solid #e2e8f0",
-                    transition: "transform 0.2s",
-                    "&:hover": { transform: "translateY(-3px)", boxShadow: "0 10px 20px -3px rgba(0,0,0,0.05)" }
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Box>
-                      <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.5rem", sm: "2rem" } }}>
-                        {stats.data?.[s.key] ?? "—"}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3, fontWeight: 600, fontSize: { xs: "0.8rem", sm: "0.875rem" } }}>
-                        {s.label}
-                      </Typography>
-                    </Box>
-                    <Avatar sx={{ bgcolor: s.bg, color: s.color, width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }}>
-                      {s.icon}
-                    </Avatar>
-                  </Stack>
-                </Paper>
+      <Grid container spacing={3}>
+        {/* Modern Sidebar Navigation */}
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.5,
+              borderRadius: "20px",
+              bgcolor: "#ffffff",
+              border: "1px solid #e2e8f0",
+              position: { md: "sticky" },
+              top: { md: 90 }
+            }}
+          >
+            <Typography variant="caption" fontWeight={800} color="text.secondary" sx={{ px: 2, py: 1, display: "block", letterSpacing: 0.8 }}>
+              ADMINISTRATOR PANELI
+            </Typography>
+            <List sx={{ p: 0 }}>
+              {sidebarItems.map(item => {
+                const active = activeSection === item.id;
+                return (
+                  <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      onClick={() => setActiveSection(item.id as any)}
+                      sx={{
+                        borderRadius: "14px",
+                        py: 1.2,
+                        px: 2,
+                        bgcolor: active ? "primary.main" : "transparent",
+                        color: active ? "#ffffff" : "text.primary",
+                        "&:hover": {
+                          bgcolor: active ? "primary.dark" : "#f1f5f9"
+                        }
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 32, color: active ? "#ffffff" : "primary.main" }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{
+                          fontWeight: active ? 800 : 600,
+                          fontSize: "0.9rem"
+                        }}
+                      />
+                      {item.count !== undefined && (
+                        <Chip
+                          size="small"
+                          label={item.count}
+                          sx={{
+                            height: 22,
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            bgcolor: active ? "rgba(255,255,255,0.25)" : "#f1f5f9",
+                            color: active ? "#ffffff" : "text.secondary"
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Paper>
+        </Grid>
+
+        {/* Main Content Area */}
+        <Grid size={{ xs: 12, md: 9 }}>
+          {/* SECTION 1: OVERVIEW */}
+          {activeSection === "overview" && (
+            <Stack spacing={3}>
+              <Grid container spacing={2}>
+                {statCards.map(s => (
+                  <Grid size={{ xs: 6, sm: 3 }} key={s.key}>
+                    <Paper
+                      sx={{
+                        p: { xs: 2, sm: 2.5 },
+                        borderRadius: "20px",
+                        border: "1px solid #e2e8f0",
+                        transition: "transform 0.2s",
+                        "&:hover": { transform: "translateY(-3px)", boxShadow: "0 10px 20px -3px rgba(0,0,0,0.05)" }
+                      }}
+                    >
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Box>
+                          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.4rem", sm: "1.8rem" } }}>
+                            {s.val}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3, fontWeight: 600, fontSize: "0.8rem" }}>
+                            {s.label}
+                          </Typography>
+                        </Box>
+                        <Avatar sx={{ bgcolor: s.bg, color: s.color, width: 42, height: 42 }}>
+                          {s.icon}
+                        </Avatar>
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
 
-          {/* Setup & Task Creation Grid */}
-          <Grid container spacing={3}>
-            {/* Quick Setup */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Paper sx={{ p: { xs: 2.5, sm: 3 }, borderRadius: "20px" }}>
-                <Typography variant="h6" fontWeight={800}>Tezkor Sozlamalar</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-                  Yangi sinflar va fanlar qo‘shish
-                </Typography>
-
-                <Box component="form" onSubmit={createClass} sx={{ display: "grid", gap: 1.5, mb: 3 }}>
-                  <TextField
-                    size="small"
-                    label="Yangi sinf nomi"
-                    placeholder="Masalan: 10-A"
-                    value={cname}
-                    onChange={e => setCname(e.target.value)}
-                    required
-                  />
-                  <FeedbackButton
-                    type="submit"
-                    loading={classBtn.loading}
-                    success={classBtn.success}
-                    defaultText="Sinf qo‘shish"
-                    successText="Sinf qo‘shildi! 🎉"
-                    icon={Plus}
-                    fullWidth
-                  />
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box component="form" onSubmit={createSubject} sx={{ display: "grid", gap: 1.5 }}>
-                  <TextField
-                    size="small"
-                    label="Yangi fan nomi"
-                    placeholder="Masalan: Fizika"
-                    value={sname}
-                    onChange={e => setSname(e.target.value)}
-                    required
-                  />
-                  <FeedbackButton
-                    type="submit"
-                    loading={subjBtn.loading}
-                    success={subjBtn.success}
-                    defaultText="Fan qo‘shish"
-                    successText="Fan qo‘shildi! 🎉"
-                    icon={BookOpen}
-                    fullWidth
-                    color="secondary"
-                  />
-                </Box>
+              {/* Quick Action Banner */}
+              <Paper
+                sx={{
+                  p: 3,
+                  borderRadius: "20px",
+                  background: "linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)",
+                  color: "#fff"
+                }}
+              >
+                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={2}>
+                  <Box>
+                    <Typography variant="h5" fontWeight={800}>Yangi topshiriq e‘lon qilmoqchimisiz?</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
+                      Vazifalar bo‘limida yangi deadline yarating, fayllar biriktiring va muddatlarni belgilang.
+                    </Typography>
+                  </Box>
+                  <MuiButton
+                    variant="contained"
+                    onClick={() => setActiveSection("tasks")}
+                    sx={{
+                      bgcolor: "#ffffff !important",
+                      color: "#4f46e5 !important",
+                      fontWeight: 800,
+                      borderRadius: "12px",
+                      px: 3
+                    }}
+                    startIcon={<Plus size={18} />}
+                  >
+                    Vazifa yaratish
+                  </MuiButton>
+                </Stack>
               </Paper>
-            </Grid>
 
-            {/* Task Creation with Attachment */}
-            <Grid size={{ xs: 12, md: 8 }}>
+              {/* Active Deadlines Preview (Sorted by nearest deadline) */}
+              <Box>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                  <Typography variant="h6" fontWeight={800}>Yaqinlashayotgan Deadlinelar</Typography>
+                  <MuiButton size="small" variant="text" onClick={() => setActiveSection("tasks")}>
+                    Barchasini ko‘rish ({allAssignments.data?.length || 0})
+                  </MuiButton>
+                </Stack>
+
+                <Grid container spacing={2}>
+                  {sortedAssignments.slice(0, 4).map((a: any) => {
+                    const isExp = a.is_expired;
+                    return (
+                      <Grid size={{ xs: 12, sm: 6 }} key={a.id}>
+                        <Card
+                          className="card-hover"
+                          onClick={() => { setSelectedAssignment(a); }}
+                          sx={{
+                            cursor: "pointer",
+                            p: 1,
+                            borderRadius: "18px",
+                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5")
+                          }}
+                        >
+                          <CardContent sx={{ p: 2 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                              <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                              <Chip
+                                icon={<Clock size={13} />}
+                                label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
+                                size="small"
+                                color={isExp ? "error" : "warning"}
+                                variant="outlined"
+                              />
+                            </Stack>
+                            <Typography variant="subtitle1" fontWeight={800} sx={{ mt: 1 }}>{a.title}</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              Kimga: <strong>{a.target_name}</strong> · Maksimal: {a.max_score} ball
+                            </Typography>
+                            <Divider sx={{ my: 1.5 }} />
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                              <Typography variant="caption" color="text.secondary">
+                                Topshirgan: <strong>{a.submitted_count} / {a.recipient_count}</strong>
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Deadline: <strong>{new Date(a.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false })}</strong>
+                              </Typography>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
+                  {!sortedAssignments.length && (
+                    <Grid size={12}>
+                      <Paper variant="outlined" sx={{ p: 4, textAlign: "center", color: "text.secondary" }}>
+                        Hozircha vazifalar mavjud emas.
+                      </Paper>
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            </Stack>
+          )}
+
+          {/* SECTION 2: TASKS / ASSIGNMENTS */}
+          {activeSection === "tasks" && (
+            <Stack spacing={3}>
+              {/* Task Creation Form */}
               <Paper sx={{ p: { xs: 2.5, sm: 3.5 }, borderRadius: "20px" }}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Avatar sx={{ bgcolor: "primary.main" }}>
                     <Plus size={22} color="#ffffff" />
                   </Avatar>
                   <Box>
-                    <Typography variant="h6" fontWeight={800}>Yangi Deadline Vazifa</Typography>
+                    <Typography variant="h6" fontWeight={800}>Yangi Deadline Vazifa Yaratish</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Sinfga (hatto bo‘sh bo‘lsa ham) yoki alohida o‘quvchiga topshiriq biriktiring
                     </Typography>
@@ -1940,7 +2114,7 @@ function Admin() {
                       <TextField required fullWidth type="number" label="Maksimal ball" value={task.max_score} onChange={e => set("max_score", e.target.value)} />
                     </Grid>
                     <Grid size={12}>
-                      <TextField required fullWidth multiline minRows={3} label="Yo‘riqnoma va talablar" value={task.description} onChange={e => set("description", e.target.value)} />
+                      <TextField required fullWidth multiline minRows={4} label="Yo‘riqnoma va talablar" placeholder="Topshiriq shartlarini yozing (enter, bo‘sh qatorlar saqlanadi)..." value={task.description} onChange={e => set("description", e.target.value)} />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 5 }}>
                       <TextField select fullWidth label="Kimga beriladi?" value={task.target_type} onChange={e => set("target_type", e.target.value)}>
@@ -2022,336 +2196,578 @@ function Admin() {
                   </Box>
                 </Box>
               </Paper>
-            </Grid>
-          </Grid>
 
-          {/* Classes Cards */}
-          <Typography variant="h5" fontWeight={800} sx={{ mt: 4.5, mb: 2 }}>Sinflar Holati</Typography>
-          <Grid container spacing={2.5}>
-            {cs.data?.map((c: any) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={c.id}>
-                <Card
-                  className="card-hover"
-                  onClick={() => setSelectedClass(c)}
-                  sx={{ cursor: "pointer", borderRadius: "20px", p: 1 }}
-                >
-                  <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Avatar sx={{ bgcolor: "#e0e7ff", color: "primary.main" }}>
-                        <School size={20} />
-                      </Avatar>
-                      <Chip label={c.active ? "Faol" : "Nofaol"} color={c.active ? "success" : "default"} size="small" />
-                    </Stack>
-                    <Typography variant="h6" fontWeight={800} sx={{ mt: 2 }}>{c.name}</Typography>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-                      <Typography variant="body2" color="text.secondary">{c.students} ta o‘quvchi</Typography>
-                      <Chip icon={<FileText size={14} />} label={`${c.task_count || 0} vazifa`} size="small" variant="outlined" />
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+              {/* All Deadlines List (Cards with nearest deadline first) */}
+              <Box>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>
+                  Barcha Deadlinelar ({sortedAssignments.length}) — Eng yaqin muddatlar oldinda
+                </Typography>
 
-          {/* Class Overview Modal */}
-          <Dialog open={!!selectedClass} onClose={() => { setSelectedClass(null); setSelectedAssignment(null); }} fullWidth maxWidth="md" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
-            <DialogTitle>
-              <Typography variant="h5" fontWeight={800}>{selectedClass?.name} — Sinf faoliyati</Typography>
-            </DialogTitle>
-            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-              {overview.isLoading ? (
-                <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
-              ) : (
-                <Stack spacing={3}>
-                  <Typography variant="subtitle1" fontWeight={700}>O‘quvchilar ro‘yxati</Typography>
-                  <Grid container spacing={1.5}>
-                    {overview.data?.students?.map((s: any) => {
-                      const color = s.state === "submitted" ? "#10b981" : s.state === "overdue" ? "#ef4444" : "#94a3b8";
-                      const label = s.state === "submitted" ? "Topshirgan" : s.state === "overdue" ? "Topshirmagan" : "Jarayonda";
-                      return (
-                        <Grid key={s.id} size={{ xs: 12, sm: 6 }}>
-                          <Paper variant="outlined" sx={{ p: 1.5, borderRadius: "14px", borderLeft: "5px solid " + color }}>
-                            <Stack direction="row" justifyContent="space-between" alignItems="center">
-                              <Box>
-                                <Typography fontWeight={700}>{s.full_name}</Typography>
-                                <Typography variant="caption" color="text.secondary">{s.student_id} · {s.submitted_count} topshirilgan</Typography>
-                              </Box>
-                              <Chip label={label} size="small" color={s.state === "submitted" ? "success" : s.state === "overdue" ? "error" : "default"} />
-                            </Stack>
-                          </Paper>
-                        </Grid>
-                      );
-                    })}
-                    {!overview.data?.students?.length && (
-                      <Grid size={12}>
-                        <Paper variant="outlined" sx={{ p: 2, textAlign: "center", color: "text.secondary", borderRadius: "12px" }}>
-                          Bu sinfda hali o‘quvchilar yo‘q. Yangi o‘quvchi ro‘yxatdan o‘tganda unga avtomatik topshiriqlar biriktiriladi.
-                        </Paper>
-                      </Grid>
-                    )}
-                  </Grid>
-
-                  <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 2 }}>Vazifalar</Typography>
-                  <Grid container spacing={2}>
-                    {overview.data?.assignments?.map((a: any) => (
+                <Grid container spacing={2.5}>
+                  {sortedAssignments.map((a: any) => {
+                    const isExp = a.is_expired;
+                    return (
                       <Grid size={{ xs: 12, sm: 6 }} key={a.id}>
-                        <Card variant="outlined" onClick={() => setSelectedAssignment(a)} sx={{ cursor: "pointer", p: 1, borderRadius: "16px" }}>
-                          <CardContent sx={{ py: "8px !important" }}>
+                        <Card
+                          className="card-hover"
+                          onClick={() => { setSelectedAssignment(a); }}
+                          sx={{
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5")
+                          }}
+                        >
+                          <CardContent sx={{ p: 2.5 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                              <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
+                              <Chip
+                                icon={<Clock size={13} />}
+                                label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
+                                size="small"
+                                color={isExp ? "error" : "warning"}
+                              />
+                            </Stack>
+
+                            <Typography variant="h6" fontWeight={800} sx={{ mt: 1.5 }}>{a.title}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: "pre-wrap", maxHeight: 60, overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {a.description}
+                            </Typography>
+
+                            <Divider sx={{ my: 2 }} />
+
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                               <Box>
-                                <Typography fontWeight={700}>{a.title}</Typography>
+                                <Typography variant="caption" color="text.secondary" display="block">
+                                  Kimga: <strong>{a.target_name}</strong>
+                                </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                  {a.subject} · {new Date(a.deadline).toLocaleDateString("uz-UZ")}
+                                  Topshirganlar: <strong>{a.submitted_count} / {a.recipient_count}</strong> ({a.graded_count} baholangan)
                                 </Typography>
                               </Box>
-                              <Stack direction="row" spacing={1} alignItems="center">
-                                {a.results_published && <Chip label="E‘lon qilingan" size="small" color="secondary" />}
-                                <Chip label={`${a.submitted_count}/${a.recipient_count}`} color="primary" size="small" />
-                              </Stack>
+
+                              <Box textAlign="right">
+                                <Typography variant="caption" color="text.secondary" display="block">Muddati (24H):</Typography>
+                                <Typography variant="caption" fontWeight={700} color={isExp ? "error.main" : "text.primary"}>
+                                  {new Date(a.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false })}
+                                </Typography>
+                              </Box>
                             </Stack>
                           </CardContent>
                         </Card>
                       </Grid>
-                    ))}
-                  </Grid>
-                </Stack>
-              )}
-            </DialogContent>
-            <DialogActions sx={{ p: 2 }}>
-              <MuiButton color="inherit" onClick={() => setSelectedClass(null)}>Yopish</MuiButton>
-            </DialogActions>
-          </Dialog>
+                    );
+                  })}
+                  {!sortedAssignments.length && (
+                    <Grid size={12}>
+                      <Paper variant="outlined" sx={{ p: 4, textAlign: "center", color: "text.secondary", borderRadius: "16px" }}>
+                        Hozircha yaratilgan vazifalar yo‘q. Yuqoridagi formadan yangi vazifa qo‘shishingiz mumkin.
+                      </Paper>
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            </Stack>
+          )}
 
-          {/* Assignment Recipients & Teacher Attachment Management Modal */}
-          <Dialog open={!!selectedAssignment} onClose={() => setSelectedAssignment(null)} fullWidth maxWidth="md" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
-            <DialogTitle>
-              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.5}>
-                <Box>
-                  <Typography variant="h5" fontWeight={800}>{selectedAssignment?.title}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Maksimal ball: {selectedAssignment?.max_score || 100}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <FeedbackButton
+          {/* SECTION 3: CLASSES */}
+          {activeSection === "classes" && (
+            <Stack spacing={3}>
+              <Paper sx={{ p: 3, borderRadius: "20px" }}>
+                <Typography variant="h6" fontWeight={800}>Yangi Sinf Qo‘shish</Typography>
+                <Box component="form" onSubmit={createClass} sx={{ display: "flex", gap: 1.5, mt: 2, flexWrap: "wrap" }}>
+                  <TextField
                     size="small"
-                    color={selectedAssignment?.results_published ? "secondary" : "primary"}
-                    loading={pubBtn.loading}
-                    success={pubBtn.success}
-                    defaultText={selectedAssignment?.results_published ? "Natijalarni yashirish" : "Natijalarni e‘lon qilish"}
-                    successText="Natija e‘lon qilindi! 📢"
-                    icon={Megaphone}
-                    onClick={togglePublish}
+                    label="Yangi sinf nomi"
+                    placeholder="Masalan: 11-A"
+                    value={cname}
+                    onChange={e => setCname(e.target.value)}
+                    required
+                    sx={{ flex: 1, minWidth: 200 }}
                   />
-                  <MuiButton color="error" size="small" variant="outlined" startIcon={<Trash2 size={16} />} onClick={removeAssignment}>
-                    O‘chirish
-                  </MuiButton>
-                </Stack>
-              </Stack>
-            </DialogTitle>
-            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-              {recipients.isLoading ? (
-                <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
-              ) : (
-                <Stack spacing={2.5}>
-                  {/* Teacher Existing Attachments & Upload Extra */}
-                  <Paper variant="outlined" sx={{ p: 2, borderRadius: "16px", bgcolor: "#f8fafc" }}>
-                    <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1} sx={{ mb: 1.5 }}>
-                      <Typography variant="subtitle2" fontWeight={800}>
-                        Topshiriq materiallari va fayllari ({assignmentDetails.data?.attachments?.length || 0})
-                      </Typography>
-                      <MuiButton
-                        component="label"
-                        size="small"
-                        variant="outlined"
-                        startIcon={<Plus size={16} />}
-                      >
-                        Yangi fayl qo‘shish
-                        <input
-                          hidden
-                          multiple
-                          type="file"
-                          onChange={e => {
-                            if (e.target.files) {
-                              setExtraFiles(Array.from(e.target.files));
-                            }
-                            e.currentTarget.value = "";
-                          }}
-                        />
-                      </MuiButton>
-                    </Stack>
+                  <FeedbackButton
+                    type="submit"
+                    loading={classBtn.loading}
+                    success={classBtn.success}
+                    defaultText="Sinf qo‘shish"
+                    successText="Sinf qo‘shildi! 🎉"
+                    icon={Plus}
+                  />
+                </Box>
+              </Paper>
 
-                    {assignmentDetails.data?.attachments?.length > 0 ? (
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        {assignmentDetails.data.attachments.map((f: any) => (
-                          <Chip
-                            key={f.id}
-                            icon={<FileText size={14} />}
-                            label={`${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`}
-                            onClick={() => download(f)}
-                            clickable
-                            color="primary"
-                            variant="outlined"
-                            sx={{ my: 0.5 }}
-                          />
-                        ))}
+              <Typography variant="h6" fontWeight={800}>Mavjud Sinflar ({cs.data?.length || 0})</Typography>
+              <Grid container spacing={2.5}>
+                {cs.data?.map((c: any) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={c.id}>
+                    <Card
+                      className="card-hover"
+                      onClick={() => setSelectedClass(c)}
+                      sx={{ cursor: "pointer", borderRadius: "20px", p: 1 }}
+                    >
+                      <CardContent>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Avatar sx={{ bgcolor: "#e0e7ff", color: "primary.main" }}>
+                            <School size={20} />
+                          </Avatar>
+                          <Chip label={c.active ? "Faol" : "Nofaol"} color={c.active ? "success" : "default"} size="small" />
+                        </Stack>
+                        <Typography variant="h6" fontWeight={800} sx={{ mt: 2 }}>{c.name}</Typography>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+                          <Typography variant="body2" color="text.secondary">{c.students} ta o‘quvchi</Typography>
+                          <Chip icon={<FileText size={14} />} label={`${c.task_count || 0} vazifa`} size="small" variant="outlined" />
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Stack>
+          )}
+
+          {/* SECTION 4: SUBJECTS */}
+          {activeSection === "subjects" && (
+            <Stack spacing={3}>
+              <Paper sx={{ p: 3, borderRadius: "20px" }}>
+                <Typography variant="h6" fontWeight={800}>Yangi Fan Qo‘shish</Typography>
+                <Box component="form" onSubmit={createSubject} sx={{ display: "flex", gap: 1.5, mt: 2, flexWrap: "wrap" }}>
+                  <TextField
+                    size="small"
+                    label="Yangi fan nomi"
+                    placeholder="Masalan: Fizika"
+                    value={sname}
+                    onChange={e => setSname(e.target.value)}
+                    required
+                    sx={{ flex: 1, minWidth: 200 }}
+                  />
+                  <FeedbackButton
+                    type="submit"
+                    loading={subjBtn.loading}
+                    success={subjBtn.success}
+                    defaultText="Fan qo‘shish"
+                    successText="Fan qo‘shildi! 🎉"
+                    icon={BookOpen}
+                    color="secondary"
+                  />
+                </Box>
+              </Paper>
+
+              <Typography variant="h6" fontWeight={800}>Fanlar Ro‘yxati ({subs.data?.length || 0})</Typography>
+              <Grid container spacing={2}>
+                {subs.data?.map((s: any) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={s.id}>
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Avatar sx={{ bgcolor: "#ecfeff", color: "#0891b2" }}>
+                          <BookOpen size={18} />
+                        </Avatar>
+                        <Typography fontWeight={700}>{s.name}</Typography>
                       </Stack>
-                    ) : (
-                      <Typography variant="caption" color="text.secondary">Hali fayl biriktirilmagan.</Typography>
-                    )}
+                      <Chip label={s.active ? "Faol" : "Nofaol"} size="small" color={s.active ? "success" : "default"} />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Stack>
+          )}
 
-                    {extraFiles.length > 0 && (
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5, p: 1, bgcolor: "#fff", borderRadius: "10px", border: "1px dashed #cbd5e1" }}>
-                        <Typography variant="caption" fontWeight={700}>Tanlandi: {extraFiles.map(x => x.name).join(", ")}</Typography>
-                        <MuiButton size="small" onClick={uploadExtraFilesToAssignment} disabled={uploadingExtra}>
-                          {uploadingExtra ? "Yuklanmoqda..." : "Yuklash"}
-                        </MuiButton>
-                        <IconButton size="small" onClick={() => setExtraFiles([])}><X size={16} /></IconButton>
-                      </Stack>
-                    )}
-                  </Paper>
-
-                  <Typography variant="subtitle2" fontWeight={800}>O‘quvchilar topshirish holati</Typography>
-                  <Stack spacing={1.5}>
-                    {recipients.data?.map((r: any) => {
-                      const isGraded = r.status === "graded";
-                      const isSubmitted = r.status === "submitted" || isGraded;
-                      return (
-                        <Paper
-                          key={r.student_id}
-                          variant="outlined"
-                          sx={{
-                            p: 2,
-                            borderRadius: "16px",
-                            borderLeft: "6px solid " + (isGraded ? "#10b981" : isSubmitted ? "#4f46e5" : "#ef4444")
-                          }}
-                        >
-                          <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ sm: "center" }} justifyContent="space-between" spacing={1.5}>
-                            <Box>
-                              <Typography fontWeight={700}>{r.full_name}</Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {r.student_code} · {isGraded ? `Baholandi: ${r.score}/${r.max_score}` : isSubmitted ? "Topshirgan (Kutilmoqda)" : "Topshirmagan"}
-                              </Typography>
-                            </Box>
-                            <Stack direction="row" spacing={1.5} alignItems="center">
-                              {isGraded && (
-                                <Chip
-                                  icon={<Trophy size={14} color="#10b981" />}
-                                  label={`${r.score} / ${r.max_score}`}
-                                  color="success"
-                                  sx={{ fontWeight: 800 }}
-                                />
-                              )}
-                              {isSubmitted ? (
-                                <MuiButton size="small" onClick={() => openGradeDialog(r)}>
-                                  {isGraded ? "Bahoni tahrirlash" : "Baholash"}
-                                </MuiButton>
-                              ) : (
-                                <Chip label="Topshirmagan" color="error" size="small" variant="outlined" />
-                              )}
-                            </Stack>
-                          </Stack>
-                        </Paper>
-                      );
-                    })}
-                    {!recipients.data?.length && (
-                      <Typography color="text.secondary" textAlign="center">Bu deadline uchun o‘quvchi topilmadi.</Typography>
-                    )}
-                  </Stack>
-                </Stack>
-              )}
-            </DialogContent>
-            <DialogActions sx={{ p: 2 }}>
-              <MuiButton color="inherit" onClick={() => setSelectedAssignment(null)}>Orqaga</MuiButton>
-            </DialogActions>
-          </Dialog>
-
-          {/* Grade Submission Dialog */}
-          <Dialog open={!!selectedSubmission} onClose={() => !gradeBtn.loading && setSelectedSubmission(null)} fullWidth maxWidth="sm" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
-            <DialogTitle>
-              <Typography variant="h6" fontWeight={800}>
-                {selectedSubmission?.full_name} — Ishni Baholash
-              </Typography>
-            </DialogTitle>
-            <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-              <Stack spacing={2.5}>
-                <Typography variant="caption" color="text.secondary">
-                  Talaba ID: {selectedSubmission?.student_code} · Yuborilgan: {selectedSubmission?.submitted_at ? new Date(selectedSubmission.submitted_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false }) : "—"}
+          {/* SECTION 5: STUDENTS (WITH DELETE FUNCTION) */}
+          {activeSection === "students" && (
+            <Stack spacing={3}>
+              <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: "20px" }}>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>
+                  O‘quvchilar Ro‘yxati ({students.data?.length || 0})
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  O‘quvchilarni boshqarish, parolini qaytarish yoki xato ochilgan profilni o‘chirish.
                 </Typography>
 
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: "14px" }}>
-                  <Typography variant="subtitle2" color="text.secondary">O‘quvchi izohi:</Typography>
-                  <Typography sx={{ mt: 0.5 }}>{selectedSubmission?.comment || "Izoh qoldirilmagan."}</Typography>
-                </Paper>
+                <TableContainer sx={{ borderRadius: "16px", border: "1px solid #f1f5f9", overflowX: "auto" }}>
+                  <Table size="small">
+                    <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700 }}>O‘quvchi F.I.Sh.</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>ID Kodi</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Sinfi</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Holat</TableCell>
+                        <TableCell sx={{ fontWeight: 700, textAlign: "right" }}>Amallar</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {students.data?.map((st: any) => (
+                        <TableRow key={st.id} hover>
+                          <TableCell sx={{ fontWeight: 700 }}>{st.full_name}</TableCell>
+                          <TableCell sx={{ color: "primary.main", fontWeight: 800 }}>{st.student_id}</TableCell>
+                          <TableCell>{st.class_name || "—"}</TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={st.active ? "Faol" : "Bloklangan"}
+                              color={st.active ? "success" : "default"}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                            <Tooltip title="Parolni standart holatga qaytarish (nis@123456)">
+                              <IconButton size="small" color="warning" onClick={() => handleResetPassword(st)} sx={{ mr: 1 }}>
+                                <RotateCcw size={17} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="O‘quvchini tizimdan butunlay o‘chirish">
+                              <IconButton size="small" color="error" onClick={() => handleDeleteStudent(st)}>
+                                <Trash2 size={17} />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {!students.data?.length && (
+                        <TableRow>
+                          <TableCell colSpan={5} sx={{ textAlign: "center", py: 4, color: "text.secondary" }}>
+                            Hozircha ro‘yxatdan o‘tgan o‘quvchilar yo‘q.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            </Stack>
+          )}
 
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Yuklangan fayllar:</Typography>
-                  {selectedSubmission?.files?.length ? selectedSubmission.files.map((f: any) => (
-                    <MuiButton key={f.id} variant="outlined" size="small" startIcon={<Download size={14} />} sx={{ mr: 1, mb: 1 }} onClick={() => download(f)}>
-                      {f.name}
-                    </MuiButton>
-                  )) : <Typography variant="caption" color="text.secondary">Fayl yo‘q</Typography>}
-                </Box>
+          {/* SECTION 6: RESULTS DASHBOARD */}
+          {activeSection === "results" && (
+            <DashboardView />
+          )}
+        </Grid>
+      </Grid>
 
-                <Divider />
+      {/* Class Overview Modal */}
+      <Dialog open={!!selectedClass} onClose={() => { setSelectedClass(null); setSelectedAssignment(null); }} fullWidth maxWidth="md" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
+        <DialogTitle>
+          <Typography variant="h5" fontWeight={800}>{selectedClass?.name} — Sinf faoliyati</Typography>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+          {overview.isLoading ? (
+            <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
+          ) : (
+            <Stack spacing={3}>
+              <Typography variant="subtitle1" fontWeight={700}>O‘quvchilar ro‘yxati</Typography>
+              <Grid container spacing={1.5}>
+                {overview.data?.students?.map((s: any) => {
+                  const color = s.state === "submitted" ? "#10b981" : s.state === "overdue" ? "#ef4444" : "#94a3b8";
+                  const label = s.state === "submitted" ? "Topshirgan" : s.state === "overdue" ? "Topshirmagan" : "Jarayonda";
+                  return (
+                    <Grid key={s.id} size={{ xs: 12, sm: 6 }}>
+                      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: "14px", borderLeft: "5px solid " + color }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Box>
+                            <Typography fontWeight={700}>{s.full_name}</Typography>
+                            <Typography variant="caption" color="text.secondary">{s.student_id} · {s.submitted_count} topshirilgan</Typography>
+                          </Box>
+                          <Chip label={label} size="small" color={s.state === "submitted" ? "success" : s.state === "overdue" ? "error" : "default"} />
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+                {!overview.data?.students?.length && (
+                  <Grid size={12}>
+                    <Paper variant="outlined" sx={{ p: 2, textAlign: "center", color: "text.secondary", borderRadius: "12px" }}>
+                      Bu sinfda hali o‘quvchilar yo‘q.
+                    </Paper>
+                  </Grid>
+                )}
+              </Grid>
 
-                <Paper sx={{ p: 2.5, bgcolor: "#f8fafc", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-                  <Typography variant="subtitle1" fontWeight={800} color="primary.main" sx={{ mb: 2 }}>
-                    Baho va Taqriz
-                  </Typography>
-                  <Stack spacing={2}>
-                    <TextField
-                      required
-                      type="number"
-                      label={`Ball (0 dan ${selectedSubmission?.max_score || 100} gacha)`}
-                      value={scoreInput}
-                      onChange={e => setScoreInput(e.target.value)}
-                    />
-                    <TextField
-                      multiline
-                      minRows={3}
-                      label="O‘qituvchi taqrizi (Feedback)"
-                      placeholder="Talabaning ishi bo‘yicha konstruktiv fikr-mulohazangiz..."
-                      value={feedbackInput}
-                      onChange={e => setFeedbackInput(e.target.value)}
-                    />
-                  </Stack>
-                </Paper>
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
-              <MuiButton color="inherit" onClick={() => setSelectedSubmission(null)} disabled={gradeBtn.loading}>
-                Yopish
-              </MuiButton>
+              <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 2 }}>Vazifalar</Typography>
+              <Grid container spacing={2}>
+                {overview.data?.assignments?.map((a: any) => (
+                  <Grid size={{ xs: 12, sm: 6 }} key={a.id}>
+                    <Card variant="outlined" onClick={() => setSelectedAssignment(a)} sx={{ cursor: "pointer", p: 1, borderRadius: "16px" }}>
+                      <CardContent sx={{ py: "8px !important" }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Box>
+                            <Typography fontWeight={700}>{a.title}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {a.subject} · {new Date(a.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false })}
+                            </Typography>
+                          </Box>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            {a.results_published && <Chip label="E‘lon qilingan" size="small" color="secondary" />}
+                            <Chip label={`${a.submitted_count}/${a.recipient_count}`} color="primary" size="small" />
+                          </Stack>
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <MuiButton color="inherit" onClick={() => setSelectedClass(null)}>Yopish</MuiButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Assignment Recipients & Grading Modal */}
+      <Dialog open={!!selectedAssignment} onClose={() => setSelectedAssignment(null)} fullWidth maxWidth="md" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
+        <DialogTitle>
+          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1.5}>
+            <Box>
+              <Typography variant="h5" fontWeight={800}>{selectedAssignment?.title}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Maksimal ball: {selectedAssignment?.max_score || 100} · Deadline: {selectedAssignment?.deadline ? new Date(selectedAssignment.deadline).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false }) : ""}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
               <FeedbackButton
-                onClick={saveGrade}
-                loading={gradeBtn.loading}
-                success={gradeBtn.success}
-                defaultText="Bahoni saqlash"
-                successText="Baho saqlandi! ⭐"
-                icon={Trophy}
+                size="small"
+                color={selectedAssignment?.results_published ? "secondary" : "primary"}
+                loading={pubBtn.loading}
+                success={pubBtn.success}
+                defaultText={selectedAssignment?.results_published ? "Natijalarni yashirish" : "Natijalarni e‘lon qilish"}
+                successText="Natija e‘lon qilindi! 📢"
+                icon={Megaphone}
+                onClick={togglePublish}
               />
-            </DialogActions>
-          </Dialog>
+              <MuiButton color="error" size="small" variant="outlined" startIcon={<Trash2 size={16} />} onClick={() => removeAssignment()}>
+                O‘chirish
+              </MuiButton>
+            </Stack>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+          {recipients.isLoading ? (
+            <Box sx={{ py: 4, textAlign: "center" }}><CircularProgress /></Box>
+          ) : (
+            <Stack spacing={2.5}>
+              {/* Task Description Preview with pre-wrap */}
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: "16px", bgcolor: "#f8fafc" }}>
+                <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                  Yo‘riqnoma va topshiriq shartlari:
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "inherit" }}>
+                  {selectedAssignment?.description || assignmentDetails.data?.description}
+                </Typography>
+              </Paper>
 
-          {/* Floating Toast Notification */}
-          <Snackbar
-            open={toast.open}
-            autoHideDuration={4000}
-            onClose={() => setToast({ ...toast, open: false })}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            <Alert
-              onClose={() => setToast({ ...toast, open: false })}
-              severity={toast.severity}
-              variant="filled"
-              sx={{ width: "100%", borderRadius: "14px", fontWeight: 700, boxShadow: 6 }}
-            >
-              {toast.message}
-            </Alert>
-          </Snackbar>
-        </>
-      )}
+              {/* Teacher Attachments */}
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: "16px", bgcolor: "#f8fafc" }}>
+                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={1} sx={{ mb: 1.5 }}>
+                  <Typography variant="subtitle2" fontWeight={800}>
+                    Topshiriq materiallari ({assignmentDetails.data?.attachments?.length || 0})
+                  </Typography>
+                  <MuiButton
+                    component="label"
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Plus size={16} />}
+                  >
+                    Yangi fayl qo‘shish
+                    <input
+                      hidden
+                      multiple
+                      type="file"
+                      onChange={e => {
+                        if (e.target.files) {
+                          setExtraFiles(Array.from(e.target.files));
+                        }
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </MuiButton>
+                </Stack>
+
+                {assignmentDetails.data?.attachments?.length > 0 ? (
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    {assignmentDetails.data.attachments.map((f: any) => (
+                      <Chip
+                        key={f.id}
+                        icon={<FileText size={14} />}
+                        label={`${f.name} (${(f.size / (1024 * 1024)).toFixed(2)} MB)`}
+                        onClick={() => download(f)}
+                        clickable
+                        color="primary"
+                        variant="outlined"
+                        sx={{ my: 0.5 }}
+                      />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="caption" color="text.secondary">Hali fayl biriktirilmagan.</Typography>
+                )}
+
+                {extraFiles.length > 0 && (
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5, p: 1, bgcolor: "#fff", borderRadius: "10px", border: "1px dashed #cbd5e1" }}>
+                    <Typography variant="caption" fontWeight={700}>Tanlandi: {extraFiles.map(x => x.name).join(", ")}</Typography>
+                    <MuiButton size="small" onClick={uploadExtraFilesToAssignment} disabled={uploadingExtra}>
+                      {uploadingExtra ? "Yuklanmoqda..." : "Yuklash"}
+                    </MuiButton>
+                    <IconButton size="small" onClick={() => setExtraFiles([])}><X size={16} /></IconButton>
+                  </Stack>
+                )}
+              </Paper>
+
+              <Typography variant="subtitle2" fontWeight={800}>O‘quvchilar topshirish holati va baholash</Typography>
+              <Stack spacing={1.5}>
+                {recipients.data?.map((r: any) => {
+                  const isGraded = r.status === "graded";
+                  const isSubmitted = r.status === "submitted" || isGraded;
+                  return (
+                    <Paper
+                      key={r.student_id}
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        borderRadius: "16px",
+                        borderLeft: "6px solid " + (isGraded ? "#10b981" : isSubmitted ? "#4f46e5" : "#ef4444")
+                      }}
+                    >
+                      <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ sm: "center" }} justifyContent="space-between" spacing={1.5}>
+                        <Box>
+                          <Typography fontWeight={700}>{r.full_name}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {r.student_code} · {isGraded ? `Baholandi: ${r.score}/${r.max_score}` : isSubmitted ? "Topshirgan (Kutilmoqda)" : "Topshirmagan"}
+                          </Typography>
+                          {isSubmitted && r.submitted_at && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              Yuborilgan vaqti: {new Date(r.submitted_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false })}
+                            </Typography>
+                          )}
+                        </Box>
+
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                          {isGraded && (
+                            <Chip
+                              icon={<Trophy size={14} color="#10b981" />}
+                              label={`${r.score} / ${r.max_score}`}
+                              color="success"
+                              sx={{ fontWeight: 800 }}
+                            />
+                          )}
+
+                          {isSubmitted ? (
+                            <>
+                              <MuiButton size="small" onClick={() => openGradeDialog(r)}>
+                                {isGraded ? "Bahoni tahrirlash" : "Baholash"}
+                              </MuiButton>
+
+                              {/* DELETE SUBMISSION BUTTON FOR STUDENT RE-SUBMISSION */}
+                              <Tooltip title="O‘quvchining yuborgan fayllarini o‘chirish (agar adashib boshqa fayl yuklagan bo‘lsa)">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => deleteStudentSubmission(r)}
+                                  sx={{ bgcolor: "#fef2f2", "&:hover": { bgcolor: "#fee2e2" } }}
+                                >
+                                  <RotateCcw size={16} />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <Chip label="Topshirmagan" color="error" size="small" variant="outlined" />
+                          )}
+                        </Stack>
+                      </Stack>
+                    </Paper>
+                  );
+                })}
+                {!recipients.data?.length && (
+                  <Typography color="text.secondary" textAlign="center">Bu deadline uchun o‘quvchi topilmadi.</Typography>
+                )}
+              </Stack>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <MuiButton color="inherit" onClick={() => setSelectedAssignment(null)}>Orqaga</MuiButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Grade Submission Dialog */}
+      <Dialog open={!!selectedSubmission} onClose={() => !gradeBtn.loading && setSelectedSubmission(null)} fullWidth maxWidth="sm" sx={{ "& .MuiDialog-paper": { m: { xs: 1.5, sm: 2 } } }}>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight={800}>
+            {selectedSubmission?.full_name} — Ishni Baholash
+          </Typography>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack spacing={2.5}>
+            <Typography variant="caption" color="text.secondary">
+              Talaba ID: {selectedSubmission?.student_code} · Yuborilgan: {selectedSubmission?.submitted_at ? new Date(selectedSubmission.submitted_at).toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent", hour12: false }) : "—"}
+            </Typography>
+
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: "14px" }}>
+              <Typography variant="subtitle2" color="text.secondary">O‘quvchi izohi:</Typography>
+              <Typography sx={{ mt: 0.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{selectedSubmission?.comment || "Izoh qoldirilmagan."}</Typography>
+            </Paper>
+
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Yuklangan fayllar:</Typography>
+              {selectedSubmission?.files?.length ? selectedSubmission.files.map((f: any) => (
+                <MuiButton key={f.id} variant="outlined" size="small" startIcon={<Download size={14} />} sx={{ mr: 1, mb: 1 }} onClick={() => download(f)}>
+                  {f.name}
+                </MuiButton>
+              )) : <Typography variant="caption" color="text.secondary">Fayl yo‘q</Typography>}
+            </Box>
+
+            <Divider />
+
+            <Paper sx={{ p: 2.5, bgcolor: "#f8fafc", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+              <Typography variant="subtitle1" fontWeight={800} color="primary.main" sx={{ mb: 2 }}>
+                Baho va Taqriz
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  required
+                  type="number"
+                  label={`Ball (0 dan ${selectedSubmission?.max_score || 100} gacha)`}
+                  value={scoreInput}
+                  onChange={e => setScoreInput(e.target.value)}
+                />
+                <TextField
+                  multiline
+                  minRows={3}
+                  label="O‘qituvchi taqrizi (Feedback)"
+                  placeholder="Talabaning ishi bo‘yicha fikr-mulohazangiz..."
+                  value={feedbackInput}
+                  onChange={e => setFeedbackInput(e.target.value)}
+                />
+              </Stack>
+            </Paper>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, justifyContent: "space-between" }}>
+          <MuiButton color="inherit" onClick={() => setSelectedSubmission(null)} disabled={gradeBtn.loading}>
+            Yopish
+          </MuiButton>
+          <FeedbackButton
+            onClick={saveGrade}
+            loading={gradeBtn.loading}
+            success={gradeBtn.success}
+            defaultText="Bahoni saqlash"
+            successText="Baho saqlandi! ⭐"
+            icon={Trophy}
+          />
+        </DialogActions>
+      </Dialog>
+
+      {/* Floating Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setToast({ ...toast, open: false })}
+          severity={toast.severity}
+          variant="filled"
+          sx={{ width: "100%", borderRadius: "14px", fontWeight: 700, boxShadow: 6 }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Shell>
   );
 }
