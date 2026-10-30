@@ -2031,41 +2031,48 @@ function Admin() {
                           onClick={() => { setSelectedAssignment(a); }}
                           sx={{
                             cursor: "pointer",
-                            p: 1,
                             borderRadius: "18px",
-                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5")
+                            border: "1.5px solid #e2e8f0",
+                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5"),
+                            overflow: "hidden",
+                            bgcolor: "#ffffff"
                           }}
                         >
-                          <CardContent sx={{ p: 2 }}>
-                            {/* Sinf va Fan ustida */}
-                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                              <Box>
-                                {a.class_name && (
-                                  <Box
-                                    sx={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 0.6,
-                                      bgcolor: "#f3e8ff",
-                                      color: "#7e22ce",
-                                      px: 1.2,
-                                      py: 0.35,
-                                      borderRadius: "8px",
-                                      mb: 0.8,
-                                      fontSize: "0.78rem",
-                                      fontWeight: 800,
-                                      border: "1px solid #e9d5ff",
-                                      letterSpacing: "0.2px"
-                                    }}
-                                  >
-                                    <School size={13} />
-                                    {a.class_name} sinfi
-                                  </Box>
-                                )}
-                                <div>
-                                  <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
-                                </div>
-                              </Box>
+                          {/* 1. TOP SECTION: SINF NOMI (PAINT CHIZMASI BO'YICHA) */}
+                          <Box
+                            sx={{
+                              py: 0.85,
+                              px: 2,
+                              bgcolor: "#f8fafc",
+                              borderBottom: "1.5px dashed #cbd5e1",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 0.8
+                            }}
+                          >
+                            <School size={15} color="#4f46e5" />
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: 800,
+                                color: "#1e293b",
+                                fontSize: "0.92rem",
+                                letterSpacing: "0.3px"
+                              }}
+                            >
+                              {a.class_name || a.target_name || "Umumiy"}
+                            </Typography>
+                          </Box>
+
+                          {/* 2. CARD BODY */}
+                          <CardContent sx={{ p: { xs: 2, sm: 2.2 } }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                              <Chip
+                                label={a.subject}
+                                size="small"
+                                sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700, borderRadius: "6px" }}
+                              />
                               <Chip
                                 icon={<Clock size={13} />}
                                 label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
@@ -2075,11 +2082,16 @@ function Admin() {
                                 sx={{ fontWeight: 700 }}
                               />
                             </Stack>
+
                             <Typography variant="subtitle1" fontWeight={800} sx={{ mt: 1 }}>{a.title}</Typography>
-                            <Typography variant="caption" color="text.secondary" display="block">
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.3 }}>
                               Kimga: <strong>{a.target_name}</strong> · Maksimal: {a.max_score} ball
                             </Typography>
+
+                            {/* 3. DIVIDER */}
                             <Divider sx={{ my: 1.5 }} />
+
+                            {/* 4. CARD FOOTER */}
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                               <Typography variant="caption" color="text.secondary">
                                 Topshirgan: <strong>{a.submitted_count} / {a.recipient_count}</strong>
@@ -2242,39 +2254,47 @@ function Admin() {
                           sx={{
                             cursor: "pointer",
                             borderRadius: "20px",
-                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5")
+                            border: "1.5px solid #e2e8f0",
+                            borderLeft: "6px solid " + (isExp ? "#ef4444" : "#4f46e5"),
+                            overflow: "hidden",
+                            bgcolor: "#ffffff"
                           }}
                         >
+                          {/* 1. TOP SECTION: SINF NOMI (PAINT CHIZMASI BO'YICHA) */}
+                          <Box
+                            sx={{
+                              py: 0.9,
+                              px: 2,
+                              bgcolor: "#f8fafc",
+                              borderBottom: "1.5px dashed #cbd5e1",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 0.8
+                            }}
+                          >
+                            <School size={15} color="#4f46e5" />
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: 800,
+                                color: "#1e293b",
+                                fontSize: "0.95rem",
+                                letterSpacing: "0.3px"
+                              }}
+                            >
+                              {a.class_name || a.target_name || "Umumiy"}
+                            </Typography>
+                          </Box>
+
+                          {/* 2. CARD BODY */}
                           <CardContent sx={{ p: 2.5 }}>
-                            {/* Sinf va Fan ustida */}
-                            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
-                              <Box>
-                                {a.class_name && (
-                                  <Box
-                                    sx={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 0.6,
-                                      bgcolor: "#f3e8ff",
-                                      color: "#7e22ce",
-                                      px: 1.2,
-                                      py: 0.35,
-                                      borderRadius: "8px",
-                                      mb: 0.8,
-                                      fontSize: "0.78rem",
-                                      fontWeight: 800,
-                                      border: "1px solid #e9d5ff",
-                                      letterSpacing: "0.2px"
-                                    }}
-                                  >
-                                    <School size={13} />
-                                    {a.class_name} sinfi
-                                  </Box>
-                                )}
-                                <div>
-                                  <Chip label={a.subject} size="small" sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700 }} />
-                                </div>
-                              </Box>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                              <Chip
+                                label={a.subject}
+                                size="small"
+                                sx={{ bgcolor: "#eef2ff", color: "primary.main", fontWeight: 700, borderRadius: "6px" }}
+                              />
                               <Chip
                                 icon={<Clock size={13} />}
                                 label={isExp ? "Muddati tugagan" : <Countdown deadline={a.deadline} />}
@@ -2284,7 +2304,7 @@ function Admin() {
                               />
                             </Stack>
 
-                            <Typography variant="h6" fontWeight={800} sx={{ mt: 1.5 }}>{a.title}</Typography>
+                            <Typography variant="h6" fontWeight={800} sx={{ mt: 1 }}>{a.title}</Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: "pre-wrap", maxHeight: 60, overflow: "hidden", textOverflow: "ellipsis" }}>
                               {a.description}
                             </Typography>
