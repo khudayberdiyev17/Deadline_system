@@ -630,9 +630,19 @@ function Shell({
 }
 
 function Login({ onLogin }: { onLogin: (u: User) => void }) {
-  const [i, setI] = useState(""), [p, setP] = useState(""), [showPassword, setShowPassword] = useState(false);
-  const [err, setErr] = useState(""), [loading, setLoading] = useState(false);
+  const loc = useLocation();
+  const [i, setI] = useState((loc.state as any)?.identity || "");
+  const [p, setP] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
   const nav = useNavigate();
+
+  useEffect(() => {
+    if ((loc.state as any)?.identity) {
+      setI((loc.state as any).identity);
+    }
+  }, [loc.state]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -732,7 +742,9 @@ function Register() {
     [f, setF] = useState<any>({ full_name: "", class_id: "", password: "", confirm: "" }),
     [msg, setMsg] = useState(""), [ok, setOk] = useState(false), [loading, setLoading] = useState(false),
     [studentId, setStudentId] = useState(""),
-    [studentIdDialogOpen, setStudentIdDialogOpen] = useState(false);
+    [studentIdDialogOpen, setStudentIdDialogOpen] = useState(false),
+    [existingStudentId, setExistingStudentId] = useState(""),
+    [existingDialogOpen, setExistingDialogOpen] = useState(false);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -753,7 +765,15 @@ function Register() {
       fireConfetti();
     } catch (e: any) {
       setOk(false);
-      setMsg(e.response?.data?.detail || "Ro‘yxatdan o‘tish amalga oshmadi");
+      const detail = e.response?.data?.detail;
+      const msgText = typeof detail === "object" ? detail.message : (detail || "Ro‘yxatdan o‘tish amalga oshmadi");
+      setMsg(msgText);
+      // Agar o'quvchi allaqachon mavjud bo'lsa va ID qaytgan bo'lsa
+      const match = typeof msgText === "string" ? msgText.match(/nis@\d+/i) : null;
+      if (match) {
+        setExistingStudentId(match[0]);
+        setExistingDialogOpen(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -867,6 +887,72 @@ function Register() {
         <DialogActions sx={{ p: 2 }}>
           <MuiButton fullWidth onClick={closeStudentIdDialog}>
             Tizimga kirish
+          </MuiButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mavjud o'quvchi haqida ogohlantirish dialogi */}
+      <Dialog
+        open={existingDialogOpen}
+        onClose={() => setExistingDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        sx={{ "& .MuiDialog-paper": { m: 2, borderRadius: "20px" } }}
+      >
+        <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <AlertCircle size={22} color="#f59e0b" />
+            <Typography variant="h6" fontWeight={800}>Siz ro‘yxatdan o‘tgansiz</Typography>
+          </Stack>
+          <IconButton aria-label="close" onClick={() => setExistingDialogOpen(false)}>
+            <X size={20} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <Stack spacing={2.5} alignItems="center" textAlign="center">
+            <Avatar sx={{ bgcolor: "#fef3c7", width: 64, height: 64, border: "2px solid #fde68a" }}>
+              <KeyRound size={32} color="#d97706" />
+            </Avatar>
+            <Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Ushbu F.I.Sh. bilan tizimda hisob allaqachon mavjud:
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  py: 1.5,
+                  px: 3,
+                  bgcolor: "#f8fafc",
+                  borderColor: "primary.main",
+                  borderRadius: "14px",
+                  display: "inline-block"
+                }}
+              >
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Siz ushbu ID da borsiz:
+                </Typography>
+                <Typography variant="h3" fontWeight={900} color="primary.main" sx={{ letterSpacing: 1.5, mt: 0.5 }}>
+                  {existingStudentId}
+                </Typography>
+              </Paper>
+            </Box>
+            <Alert severity="info" sx={{ width: "100%", borderRadius: "12px", textAlign: "left", fontSize: "0.85rem" }}>
+              Qaytadan ro‘yxatdan o‘tishingiz shart emas. Agar parolingizni unutgan bo‘lsangiz, administrator bilan bog‘laning: <strong>@cybersec_samandar</strong>
+            </Alert>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <MuiButton
+            fullWidth
+            variant="contained"
+            size="large"
+            onClick={() => {
+              setExistingDialogOpen(false);
+              nav("/login", { state: { identity: existingStudentId } });
+            }}
+            sx={{ height: 46 }}
+          >
+            Ushbu ID bilan kirish
           </MuiButton>
         </DialogActions>
       </Dialog>

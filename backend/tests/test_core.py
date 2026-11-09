@@ -45,6 +45,20 @@ def test_registration_generates_sequential_id():
     r = client.post("/api/v1/auth/register", json={"full_name": "Ali Valiyev", "class_id": cid, "password": "secret123"})
     assert r.status_code == 201 and re.fullmatch(r"nis@\d{3}", r.json()["student_id"])
 
+def test_registration_prevents_duplicate_full_name_and_returns_student_id():
+    s = TestingSessionLocal()
+    c = s.query(ClassRoom).first()
+    cid = str(c.id)
+    u = s.query(User).filter_by(role="student").first()
+    student_id = u.student_id
+    s.close()
+
+    client = TestClient(app)
+    # Duplicate registration with same name (case variation and extra spaces)
+    r = client.post("/api/v1/auth/register", json={"full_name": "  ali   valiyev  ", "class_id": cid, "password": "secret123"})
+    assert r.status_code == 409
+    assert f"Siz ushbu ID da borsiz: {student_id}" in r.json()["detail"]
+
 def test_registered_student_is_created():
     s = TestingSessionLocal()
     u = s.query(User).filter_by(role="student").first()

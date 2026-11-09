@@ -132,12 +132,23 @@ def register(data: Register, session: Session = Depends(db)):
     classroom = session.get(ClassRoom, data.class_id)
     if not classroom or not classroom.active:
         err(422, "Faol sinfni tanlang")
+
+    clean_name = " ".join(data.full_name.strip().split())
+    existing = session.scalar(
+        select(User).where(
+            func.lower(func.trim(User.full_name)) == clean_name.lower(),
+            User.role == "student"
+        )
+    )
+    if existing:
+        err(409, f"Siz ushbu ID da borsiz: {existing.student_id}")
+
     for _ in range(50):
         sid = f"nis@{secrets.randbelow(999)+1:03d}"
         if session.scalar(select(User.id).where(User.student_id == sid)):
             continue
         user = User(
-            full_name=data.full_name.strip(),
+            full_name=clean_name,
             student_id=sid,
             password_hash=ph.hash(data.password),
             role="student",
